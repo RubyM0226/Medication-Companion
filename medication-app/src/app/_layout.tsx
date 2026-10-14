@@ -12,18 +12,18 @@ export default function RootLayout() {
 }
 
 function RootStack() {
-  const { colors, fontScale, toggles } = useSettings();
+  const { colors, fontScale, isDark, reduceMotion } = useSettings();
 
   return (
     <>
-      <StatusBar style={toggles.highContrast ? 'light' : 'dark'} />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <Stack
         screenOptions={{
           headerStyle: { backgroundColor: colors.background },
           headerTintColor: colors.textPrimary,
           headerTitleStyle: { fontSize: 17 * fontScale },
           contentStyle: { backgroundColor: colors.background },
-          animation: toggles.reduceMotion ? 'none' : 'default',
+          animation: reduceMotion ? 'none' : 'default',
         }}>
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="login" options={{ title: 'Log In' }} />
@@ -32,6 +32,10 @@ function RootStack() {
         <Stack.Screen
           name="addMedication"
           options={{ title: 'Add Medication', presentation: 'modal' }}
+        />
+        <Stack.Screen
+          name="drug/[setId]"
+          options={{ title: 'Medication details', headerBackTitle: 'Lookup' }}
         />
       </Stack>
     </>
