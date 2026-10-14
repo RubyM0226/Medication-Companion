@@ -1,42 +1,38 @@
 // Brand palette and semantic color roles. Screens must import from here
 // rather than hardcoding hex values.
 //
-// WCAG 2.2 contrast ratios for the pairings used as text:
-//   darkBrown on cream   15.93  (AA normal text)
-//   teal on cream         6.99  (AA normal text)
-//   rustOrange on cream   5.62  (AA normal text)
-//   cream on teal         6.99  (AA normal text)
-//   darkBrown on mutedGold 7.76 (AA normal text)
-//   textSecondary on cream 7.60 (AA normal text)
-//   colorBlindBlue on cream   7.15, colorBlindOrange on cream 5.71
-//   inputText on inputBackground 16.88, inputPlaceholder 8.05
-//   onSuccess on success 13.11
-//   on white surface: darkBrown 17.46, textSecondary 8.33, teal 7.66, rust 6.16
-//   on sage: darkBrown 13.77, teal 6.04; ringTrack vs teal 4.53 (3:1 for graphics)
+// WCAG 2.2 contrast ratios. AA needs 4.5:1 for normal text and 3:1 for
+// large text (18pt+, or 14pt bold) and UI components such as icons.
 //
-// success (soft green) on cream is only 1.21:1, so like gold it is a fill
-// behind onSuccess text, always with a border and a text label.
+// Pass AA for normal text:
+//   textPrimary (cream) on background (darkBlue)        9.39
+//   primary (mutedLime) on background (darkBlue)        7.07
+//   onPrimary (darkBlue) on primary (mutedLime)         7.07
+//   accent (lightOrange) on background (darkBlue)       4.73
+//   onAccent (darkBlue) on accent (lightOrange)         4.73
 //
-// mutedGold on cream is only 2.05:1, so gold must never be text, icons or
-// borders on a cream background. Use it as a fill behind darkBrown text.
+// Large text and icons only (3:1), not normal text:
+//   danger (burntOrange) on background (darkBlue)       3.27
+//
+// FAILS, even for large text (below 3:1):
+//   onDanger (cream) on danger (burntOrange)            2.87
+//
+// Never put burntOrange (2.87), lightOrange (1.99) or mutedLime (1.33) as
+// text, icons or borders on a cream background. Use them as fills behind
+// darkBlue text instead.
 
 export const Colors = {
-  rustOrange: '#A44234',
-  cream: '#FEF4D9',
-  darkBrown: '#291411',
-  teal: '#245B60',
-  mutedGold: '#D9A441',
+  burntOrange: '#FF6200',
+  cream: '#FFFCCF',
+  darkBlue: '#2A446B',
+  mutedLime: '#CAE49F',
+  lightOrange: '#FF9B61',
 
-  background: '#FEF4D9',
-  textPrimary: '#291411',
-  primary: '#245B60',
-  accent: '#D9A441',
-  danger: '#A44234',
-
-  // Foreground colors for text/icons placed on a filled role color.
-  onPrimary: '#FEF4D9',
-  onAccent: '#291411',
-  onDanger: '#FEF4D9',
+  background: '#2A446B',
+  textPrimary: '#FFFCCF',
+  primary: '#CAE49F',
+  accent: '#FF9B61',
+  danger: '#FF6200',
 
   // Descriptions and helper text. Also the off-state switch track, which
   // needs 3:1 against the background to be visible.
@@ -61,6 +57,9 @@ export const Colors = {
   sage: '#DDE8D3',
   // Unfilled part of the progress ring, drawn on sage.
   ringTrack: '#B9CDB0',
+  onPrimary: '#2A446B',
+  onAccent: '#2A446B',
+  onDanger: '#0F1F3A',
 };
 
 // The dark and high contrast themes provide another object with these same keys.
