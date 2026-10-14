@@ -1,16 +1,17 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { Colors } from '@/constants/colors';
+import { useSettings } from '@/context/settingsContext';
 
 export default function AddMedicationScreen() {
+  const { colors, fontScale } = useSettings();
+
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Add Medication</Text>
+      <Text style={{ color: colors.textPrimary, fontSize: 16 * fontScale }}>Add Medication</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  text: { color: Colors.textPrimary },
 });
