@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 
-import { Colors } from '@/constants/colors';
+import { useSettings } from '@/context/settingsContext';
 
 export default function SignInScreen() {
   // email and password start as blank string 

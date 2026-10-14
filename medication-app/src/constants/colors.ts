@@ -34,25 +34,96 @@ export const Colors = {
   accent: '#FF9B61',
   danger: '#FF6200',
 
-  // Foreground colors for text/icons placed on a filled role color.
+  // Descriptions and helper text. Also the off-state switch track, which
+  // needs 3:1 against the background to be visible.
+  textSecondary: '#5C4A45',
+
+  // Status colors used when color-blind-friendly indicators are on. Blue and
+  // orange stay distinguishable for red-green color vision deficiencies.
+  colorBlindBlue: '#0B5394',
+  colorBlindOrange: '#9A4A00',
+
+  // Text fields. Give them a textPrimary border so the edge is visible.
+  inputBackground: '#FFFBEF',
+  inputText: '#291411',
+  inputPlaceholder: '#5C4A45',
+
+  // Soft green fill for positive status chips.
+  success: '#CFE6C4',
+  onSuccess: '#291411',
+
+  // White cards for medications, and soft sage for progress and privacy.
+  surface: '#FFFFFF',
+  sage: '#DDE8D3',
+  // Unfilled part of the progress ring, drawn on sage.
+  ringTrack: '#B9CDB0',
   onPrimary: '#2A446B',
   onAccent: '#2A446B',
   onDanger: '#0F1F3A',
 };
 
-// Future high-contrast, dark and color-vision-friendly modes should provide
-// another object with these same keys.
+// The dark and high contrast themes provide another object with these same keys.
 export type ThemeColors = typeof Colors;
 
 export type MedicationStatus = 'taken' | 'missed' | 'upcoming' | 'skipped';
 
-// Status must always be shown with its icon and label; color only reinforces it.
-export const StatusDisplay: Record<
-  MedicationStatus,
-  { icon: string; label: string; textColor: string; backgroundColor: string }
-> = {
-  taken: { icon: '✓', label: 'Taken', textColor: Colors.teal, backgroundColor: Colors.cream },
-  missed: { icon: '⚠', label: 'Missed', textColor: Colors.rustOrange, backgroundColor: Colors.cream },
-  upcoming: { icon: '⏰', label: 'Upcoming', textColor: Colors.darkBrown, backgroundColor: Colors.mutedGold },
-  skipped: { icon: '—', label: 'Skipped', textColor: Colors.darkBrown, backgroundColor: Colors.cream },
+// Status must always be shown with its icon and label; color only reinforces
+// it. Color-blind-friendly mode swaps to blue/orange and adds a border style
+// per status, so the four statuses differ in shape as well as color.
+export type StatusStyle = {
+  icon: string;
+  label: string;
+  textColor: string;
+  backgroundColor: string;
+  borderColor: string;
+  borderStyle: 'solid' | 'dashed' | 'dotted';
+  borderWidth: number;
 };
+
+export function getStatusDisplay(
+  colors: ThemeColors,
+  colorBlindFriendly: boolean,
+): Record<MedicationStatus, StatusStyle> {
+  const taken = colorBlindFriendly ? colors.colorBlindBlue : colors.primary;
+  const missed = colorBlindFriendly ? colors.colorBlindOrange : colors.danger;
+  const thick = colorBlindFriendly ? 3 : 1.5;
+
+  return {
+    taken: {
+      icon: '✓',
+      label: 'Taken',
+      textColor: taken,
+      backgroundColor: colors.background,
+      borderColor: taken,
+      borderStyle: 'solid',
+      borderWidth: 1.5,
+    },
+    missed: {
+      icon: '⚠',
+      label: 'Missed',
+      textColor: missed,
+      backgroundColor: colors.background,
+      borderColor: missed,
+      borderStyle: 'solid',
+      borderWidth: thick,
+    },
+    upcoming: {
+      icon: '⏰',
+      label: 'Pending',
+      textColor: colors.onAccent,
+      backgroundColor: colors.accent,
+      borderColor: colors.onAccent,
+      borderStyle: colorBlindFriendly ? 'dotted' : 'solid',
+      borderWidth: colorBlindFriendly ? 2 : 0,
+    },
+    skipped: {
+      icon: '—',
+      label: 'Skipped',
+      textColor: colors.textPrimary,
+      backgroundColor: colors.background,
+      borderColor: colors.textPrimary,
+      borderStyle: colorBlindFriendly ? 'dashed' : 'solid',
+      borderWidth: colorBlindFriendly ? 2 : 1.5,
+    },
+  };
+}

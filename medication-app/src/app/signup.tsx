@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 
-import { Colors } from '@/constants/colors';
+import { useSettings } from '@/context/settingsContext';
 
 export default function SignUpScreen() {
   // tracking variables starting as blank strings
