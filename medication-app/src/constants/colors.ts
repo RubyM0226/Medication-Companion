@@ -11,6 +11,8 @@
 //   colorBlindBlue on cream   7.15, colorBlindOrange on cream 5.71
 //   inputText on inputBackground 16.88, inputPlaceholder 8.05
 //   onSuccess on success 13.11
+//   on white surface: darkBrown 17.46, textSecondary 8.33, teal 7.66, rust 6.16
+//   on sage: darkBrown 13.77, teal 6.04; ringTrack vs teal 4.53 (3:1 for graphics)
 //
 // success (soft green) on cream is only 1.21:1, so like gold it is a fill
 // behind onSuccess text, always with a border and a text label.
@@ -53,6 +55,12 @@ export const Colors = {
   // Soft green fill for positive status chips.
   success: '#CFE6C4',
   onSuccess: '#291411',
+
+  // White cards for medications, and soft sage for progress and privacy.
+  surface: '#FFFFFF',
+  sage: '#DDE8D3',
+  // Unfilled part of the progress ring, drawn on sage.
+  ringTrack: '#B9CDB0',
 };
 
 // The dark and high contrast themes provide another object with these same keys.
@@ -102,7 +110,7 @@ export function getStatusDisplay(
     },
     upcoming: {
       icon: '⏰',
-      label: 'Upcoming',
+      label: 'Pending',
       textColor: colors.onAccent,
       backgroundColor: colors.accent,
       borderColor: colors.onAccent,

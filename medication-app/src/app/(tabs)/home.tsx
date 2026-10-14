@@ -1,284 +1,164 @@
-import React, { useState } from 'react'; //usestate lets screen remember a val and update it when it changes. 
-import { //this imports 5 things from the react-native package. 
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-  Pressable,
-} from 'react-native';
+// Home dashboard. Builds on YHM882's original Home layout (greeting, next
+// dose card with time badges, later today, 7-day snapshot), now driven by the
+// saved schedule and dose logs instead of sample data.
 
-import { Colors } from '@/constants/colors'; //imports color obj defined in another file in proj 
+import { Link } from 'expo-router';
+import { useState } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export default function HomeScreen() {//defines func homescreen, and export default allows another file to import this component as the file's main export
-  const userName = 'Yasmin';  // TEMP data for the Home screen, later pull from sign in 
+import { AccessibleButton } from '@/components/accessibleButton';
+import { cardStyle } from '@/components/home/cardStyle';
+import { DailyProgressCard, progressStatus } from '@/components/home/dailyProgressCard';
+import { DoseConfirmationModal } from '@/components/home/doseConfirmationModal';
+import { doseSentence } from '@/components/home/format';
+import { MedicationScheduleCard } from '@/components/home/medicationScheduleCard';
+import { PrivacyBanner } from '@/components/home/privacyBanner';
+import { QuickActions } from '@/components/home/quickActions';
+import { RemindLaterModal } from '@/components/home/remindLaterModal';
+import { UpcomingDoseCard } from '@/components/home/upcomingDoseCard';
+import { WelcomeHeader } from '@/components/home/welcomeHeader';
+import { useSettings } from '@/context/settingsContext';
+import { useReadAloud } from '@/hooks/useReadAloud';
+import { useTodayDoses } from '@/hooks/useTodayDoses';
+import { Dose } from '@/services/doseSchedule';
+import { Medication } from '@/services/medicationStore';
 
-  const [doseStatus, setDoseStatus] = useState('Upcoming'); //assigns val "Upcoming" to doseStatus (holds current val) and setDoseStatus (func used to change that val)
-  //updating the val in donseStatus automatically triggers setDoseStatus to be updated
-  const [reminderMessage, setReminderMessage] = useState(''); //creates variable (empty string)reminderMessage and function setReminderMessage changes it
+export default function HomeScreen() {
+  const { colors, fontScale: scale, reduceMotion, toggles } = useSettings();
+  const insets = useSafeAreaInsets();
+  const { state, now, retry } = useTodayDoses();
+  const { speakingId, toggle } = useReadAloud();
+  const [confirming, setConfirming] = useState<Dose<Medication> | null>(null);
+  const [reminding, setReminding] = useState(false);
+
+  const heading = (title: string) => (
+    <Text style={[styles.sectionTitle, { color: colors.textPrimary, fontSize: 20 * scale }]} accessibilityRole="header">
+      {title}
+    </Text>
+  );
+  const text = { color: colors.textPrimary, fontSize: 16 * scale, lineHeight: 23 * scale };
+
+  // Only read when the person taps Read aloud; never automatically.
+  const readSummary = () => {
+    if (state.status !== 'ready') return;
+    const { summary, doses } = state;
+    const parts = [progressStatus(summary, doses) + '.'];
+    if (summary.total > 0) parts.push(`${summary.taken} of ${summary.total} doses taken.`);
+    const upcoming = doses.filter((dose) => dose.status === 'pending');
+    if (upcoming.length > 0) parts.push(`Still to take: ${upcoming.map(doseSentence).join('; ')}.`);
+    toggle('summary', parts.join(' '));
+  };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* Greeting */}
-      {/* Separated out from boxes into a clean, flat header section matching the target design layout */}
-      <View style={styles.headerSection}> {/* creates container that all below falls into */}
-        <Text style={styles.heading}>Hello, {userName}!</Text>
-        <Text style={styles.subheading}>
-          Here is your medication plan for today.
-        </Text>
+    <ScrollView
+      style={{ backgroundColor: colors.background }}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + 12 }]}>
+      <View style={styles.column}>
+        <WelcomeHeader now={now} />
+        <PrivacyBanner />
+
+        {state.status === 'loading' ? (
+          <View style={styles.center} accessible accessibilityLiveRegion="polite">
+            {reduceMotion ? null : <ActivityIndicator size="large" color={colors.primary} />}
+            <Text style={text}>Loading today’s plan…</Text>
+          </View>
+        ) : null}
+
+        {state.status === 'error' ? (
+          <View style={[cardStyle(colors, toggles.highContrast), styles.gap, { borderColor: colors.danger, borderWidth: 2 }]}>
+            <Text style={[text, styles.bold, { color: colors.danger }]}>⚠ Could not load your medications</Text>
+            <Text style={text}>Your saved information is still on this phone. Please try again.</Text>
+            <AccessibleButton label="Try again" variant="primary" onPress={retry} />
+          </View>
+        ) : null}
+
+        {state.status === 'ready' ? (
+          <>
+            <DailyProgressCard summary={state.summary} doses={state.doses} />
+
+            <UpcomingDoseCard
+              dose={state.summary.next}
+              now={now}
+              hasMedications={state.medications.length > 0}
+              allDone={state.summary.total > 0 && state.summary.pending === 0}
+              onLog={setConfirming}
+              onRemind={() => setReminding(true)}
+            />
+
+            {state.medications.length > 0 ? (
+              <View style={styles.gap}>
+                <View style={styles.sectionRow}>
+                  {heading('Today’s Schedule')}
+                  <Link
+                    href="/medications"
+                    style={[styles.link, { color: colors.primary, fontSize: 16 * scale }]}
+                    accessibilityRole="link"
+                    accessibilityLabel="See all medications">
+                    See all ›
+                  </Link>
+                </View>
+                {state.doses.length === 0 ? (
+                  <Text style={text}>No doses are scheduled for today.</Text>
+                ) : (
+                  state.doses.map((dose) => (
+                    <MedicationScheduleCard key={dose.key} dose={dose} onLog={setConfirming} />
+                  ))
+                )}
+                {state.medications.some((med) => med.schedule.frequencyType === 'as_needed') ? (
+                  <Text style={{ color: colors.textSecondary, fontSize: 14 * scale }}>
+                    Medications taken only when needed are not listed here.
+                  </Text>
+                ) : null}
+              </View>
+            ) : null}
+
+            <View style={styles.gap}>
+              {heading('Quick actions')}
+              <QuickActions speaking={speakingId === 'summary'} onReadAloud={readSummary} />
+            </View>
+
+            <View style={[cardStyle(colors, toggles.highContrast), styles.snapshot]} accessible>
+              <View style={styles.snapshotText}>
+                <Text style={[styles.label, { color: colors.textPrimary, fontSize: 13 * scale }]}>LAST 7 DAYS</Text>
+                {state.week.total === 0 ? (
+                  <Text style={text}>No scheduled doses in the last 7 days.</Text>
+                ) : (
+                  <>
+                    <Text style={[styles.bold, { color: colors.textPrimary, fontSize: 18 * scale }]}>
+                      {state.week.taken} of {state.week.total} doses taken
+                    </Text>
+                    <Text style={{ color: colors.textSecondary, fontSize: 14 * scale }}>Not counting today</Text>
+                  </>
+                )}
+              </View>
+              {state.week.total > 0 ? (
+                <Text style={[styles.percent, { color: colors.textPrimary, fontSize: 34 * scale }]}>
+                  {Math.round((state.week.taken / state.week.total) * 100)}%
+                </Text>
+              ) : null}
+            </View>
+          </>
+        ) : null}
       </View>
 
-      {/* Next medication */}
-      <View style={styles.card}>
-        <View style={styles.cardHeaderRow}>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>NEXT • 8:00 AM</Text>
-          </View>
-          <View style={styles.timeBadge}>
-            <Text style={styles.timeBadgeText}>IN 42 MIN</Text>
-          </View>
-        </View>
-
-        {/* hardcoded for now */}
-        <Text style={styles.medicationName}>Medication A</Text>
-        <Text style={styles.medDetailText}>500 mg • With breakfast</Text>
-
-        <Text style={styles.status}>{doseStatus}</Text>
-
-        {/* view component that groups buttons together */}
-        <View style={styles.buttonRow}> 
-          <Pressable
-            style={[styles.button, styles.primaryButton]}
-            onPress={() => { //specifies what happens when button pressed
-              setDoseStatus('Marked as taken'); //when user presses button change status to marked as taken
-              setReminderMessage(''); //reminder message is cleared 
-            }}
-          >
-            <Text style={styles.primaryButtonText}>Taken</Text>
-            {/* closes first button */}
-          </Pressable> 
-          {/* opens second button */}
-          <Pressable 
-            style={styles.button}
-            onPress={() => {
-              // when remind me later button is pushed, it says sentence below. Message goes away once you click the taken button
-              setReminderMessage( 
-                'Reminder requested. Notifications are not set up yet.'
-              );
-            }}
-          >
-            <Text style={styles.secondaryButtonText}>Later</Text>
-          </Pressable>
-        </View>
-
-        {/* conditional display, only show reminder message if it is not empty string */}
-        {reminderMessage !== '' && ( 
-          <Text style={styles.reminderText}>{reminderMessage}</Text>
-        )}
-      </View>
-
-      {/* Next dose after the first one */}
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>LATER TODAY</Text>
-        <View style={styles.medRow}>
-          <View style={styles.timeLabelBox}>
-            <Text style={styles.timeLabelText}>2:00 PM</Text>
-          </View>
-          <View style={styles.medRowContent}>
-            <Text style={styles.medicationNameInline}>Medication B</Text>
-            <Text style={styles.medDetailTextInline}>1 tablet</Text>
-          </View>
-        </View>
-      </View>
-
-      {/* Seven-day summary */}
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>7-DAY SNAPSHOT</Text>
-        <View style={styles.snapshotRow}>
-          <View style={styles.snapshotLeft}>
-            <Text style={styles.snapshotCount}>12 of 14</Text>
-            <Text style={styles.snapshotSubtext}>doses logged</Text>
-          </View>
-          <View style={styles.snapshotRight}>
-            <Text style={styles.percentageText}>86%</Text>
-          </View>
-        </View>
-      </View>
+      <DoseConfirmationModal dose={confirming} onClose={() => setConfirming(null)} />
+      <RemindLaterModal visible={reminding} onClose={() => setReminding(false)} />
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.background, 
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 40,
-    gap: 16,
-  },
-  headerSection: {
-    marginBottom: 10,
-  },
-  heading: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: Colors.textPrimary, 
-    letterSpacing: -0.5,
-  },
-  subheading: {
-    fontSize: 16,
-    color: Colors.textPrimary,
-    opacity: 0.8,
-    marginTop: 4,
-  },
-  card: {
-    backgroundColor: Colors.background, 
-    borderWidth: 1,
-    borderColor: Colors.textPrimary, 
-    padding: 20,
-    borderRadius: 16,
-    gap: 12,
-  },
-  cardHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  badge: {
-    borderWidth: 1,
-    borderColor: Colors.textPrimary,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 6,
-  },
-  badgeText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-  },
-  timeBadge: {
-    backgroundColor: Colors.danger, 
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 6,
-  },
-  timeBadgeText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: Colors.onDanger, 
-  },
-  sectionTitle: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    letterSpacing: 1,
-    opacity: 0.6,
-    marginBottom: 4,
-  },
-  medicationName: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    color: Colors.textPrimary,
-  },
-  medDetailText: {
-    fontSize: 15,
-    color: Colors.textPrimary,
-    opacity: 0.9,
-  },
-  status: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.primary,
-    marginTop: 2,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 8,
-  },
-  button: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: Colors.primary, 
-    borderRadius: 24,
-    paddingVertical: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  primaryButton: {
-    backgroundColor: Colors.primary, 
-  },
-  primaryButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.onPrimary, 
-  },
-  secondaryButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.primary, 
-  },
-  reminderText: {
-    fontSize: 14,
-    color: Colors.textPrimary,
-    marginTop: 4,
-    fontStyle: 'italic',
-  },
-  medRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    marginTop: 4,
-  },
-  timeLabelBox: {
-    borderWidth: 1,
-    borderColor: Colors.primary,
-    borderRadius: 20,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-  },
-  timeLabelText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.primary,
-  },
-  medRowContent: {
-    flex: 1,
-  },
-  medicationNameInline: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.textPrimary,
-  },
-  medDetailTextInline: {
-    fontSize: 14,
-    color: Colors.textPrimary,
-    opacity: 0.6,
-  },
-  snapshotRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  snapshotLeft: {
-    gap: 2,
-  },
-  snapshotCount: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: Colors.textPrimary,
-  },
-  snapshotSubtext: {
-    fontSize: 13,
-    color: Colors.textPrimary,
-    opacity: 0.6,
-  },
-  snapshotRight: {
-    justifyContent: 'center',
-  },
-  percentageText: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: Colors.textPrimary,
-  },
+  content: { paddingHorizontal: 20, paddingBottom: 40 },
+  column: { width: '100%', maxWidth: 640, alignSelf: 'center', gap: 18 },
+  center: { alignItems: 'center', gap: 12, paddingVertical: 32 },
+  gap: { gap: 12 },
+  bold: { fontWeight: '700' },
+  sectionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' },
+  sectionTitle: { fontWeight: '700' },
+  link: { fontWeight: '700', paddingVertical: 12, paddingLeft: 12 },
+  label: { fontWeight: '800', letterSpacing: 1 },
+  snapshot: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' },
+  snapshotText: { gap: 2, flexShrink: 1 },
+  percent: { fontWeight: '800' },
 });

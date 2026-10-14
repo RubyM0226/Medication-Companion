@@ -50,7 +50,7 @@ export type Dose<M extends ScheduledMedication = ScheduledMedication> = {
   log?: DoseLog;
 };
 
-export type DaySummary = {
+export type DaySummary<M extends ScheduledMedication = ScheduledMedication> = {
   total: number;
   taken: number;
   missed: number;
@@ -59,7 +59,7 @@ export type DaySummary = {
   // null when nothing is scheduled, so there is no divide by zero.
   percentTaken: number | null;
   // The earliest dose still to log, including ones past their time.
-  next?: Dose;
+  next?: Dose<M>;
 };
 
 export function dateKey(date: Date) {
@@ -123,7 +123,7 @@ export function dosesForDay<M extends ScheduledMedication>(
   );
 }
 
-export function summarizeDay(doses: Dose[]): DaySummary {
+export function summarizeDay<M extends ScheduledMedication>(doses: Dose<M>[]): DaySummary<M> {
   const count = (status: Dose['status']) => doses.filter((dose) => dose.status === status).length;
   const taken = count('taken');
   return {

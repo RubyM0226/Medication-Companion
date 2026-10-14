@@ -6,9 +6,11 @@ import { StyleSheet, Text, View } from 'react-native';
 import { getStatusDisplay, MedicationStatus } from '@/constants/colors';
 import { useSettings } from '@/context/settingsContext';
 
-export function StatusBadge({ status }: { status: MedicationStatus }) {
+// label replaces the default text, e.g. "Pending · late".
+export function StatusBadge({ status, label }: { status: MedicationStatus; label?: string }) {
   const { colors, toggles, fontScale } = useSettings();
   const display = getStatusDisplay(colors, toggles.colorBlindFriendly)[status];
+  const text = label ?? display.label;
 
   return (
     <View
@@ -22,9 +24,9 @@ export function StatusBadge({ status }: { status: MedicationStatus }) {
         },
       ]}
       accessible
-      accessibilityLabel={`Status: ${display.label}`}>
+      accessibilityLabel={`Status: ${text}`}>
       <Text style={[styles.text, { color: display.textColor, fontSize: 15 * fontScale }]}>
-        {display.icon} {display.label}
+        {display.icon} {text}
       </Text>
     </View>
   );

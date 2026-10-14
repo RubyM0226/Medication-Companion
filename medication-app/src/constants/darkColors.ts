@@ -11,6 +11,8 @@ import { ThemeColors } from '@/constants/colors';
 //   rust (danger)     7.79  (also background on rust)
 //   colorBlindBlue    8.92, colorBlindOrange 9.22
 //   soft green (success) 11.31 (also background on green)
+// surface #2A1A17: cream 15.22, teal 8.42, rust 6.95, textSecondary 10.28
+// sage #26352B: cream 11.78, teal 6.51; ringTrack vs teal 4.74
 // Inputs stay cream with dark text (17.05) so fields stand out on dark.
 export const DarkColors: ThemeColors = {
   rustOrange: '#F08C7C',
@@ -40,4 +42,8 @@ export const DarkColors: ThemeColors = {
 
   success: '#A8D5A2',
   onSuccess: '#1C0F0D',
+
+  surface: '#2A1A17',
+  sage: '#26352B',
+  ringTrack: '#3A4A40',
 };
