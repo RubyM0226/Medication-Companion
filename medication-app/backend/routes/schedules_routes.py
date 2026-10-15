@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, session
-from services.schedules_service import (
+from backend.services.schedules_service import (
     create_schedule,
     get_schedule,
     update_schedule,

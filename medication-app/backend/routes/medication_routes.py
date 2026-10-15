@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, session
-from services.medication_service import (
+from backend.services.medication_service import (
     create_medication,
     get_medications,
     get_medication,

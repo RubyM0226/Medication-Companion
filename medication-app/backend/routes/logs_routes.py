@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, session
-from services.logs_service import (
+from backend.services.logs_service import (
     create_log,
     get_logs,
     update_log,
