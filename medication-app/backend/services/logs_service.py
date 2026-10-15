@@ -1,4 +1,4 @@
-from supabase_client import supabase
+from backend.supabase_client import supabase
 
 # contains functions behind the routes for CRUD a log for a medication
 
@@ -40,6 +40,6 @@ def update_log(user_id, log_id, data):
 # delete a log for a medication by user_id and log_id
 def delete_log(user_id, log_id):
 
-    (
+    return (
         supabase.table("medication_logs").delete().eq("id", log_id).eq("user_id", user_id).execute()
     )

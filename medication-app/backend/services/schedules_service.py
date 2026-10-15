@@ -1,4 +1,4 @@
-from supabase_client import supabase
+from backend.supabase_client import supabase
 
 
 # contains functions behind the routes for CRUD a schedule for a medication

@@ -10,6 +10,16 @@ url = os.getenv("SUPABASE_URL")
 db_key = os.getenv("SUPABASE_KEY")
 supabase: Client = create_client(url, db_key)
 app = Flask(__name__)
+
+# importing the medication route blueprints 
+from backend.routes.medication_routes import medication_bp
+from backend.routes.logs_routes import log_bp
+from backend.routes.schedules_routes import schedule_bp
+
+app.register_blueprint(medication_bp)
+app.register_blueprint(log_bp)
+app.register_blueprint(schedule_bp)
+
 @app.route('/')
 def home():
     if "user" in session:
