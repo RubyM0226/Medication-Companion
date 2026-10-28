@@ -44,3 +44,6 @@ example
 .env
 __pycache__/
 *.pyc
+.env
+__pycache__/
+*.pyc
