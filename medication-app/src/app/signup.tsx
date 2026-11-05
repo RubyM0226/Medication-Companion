@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Alert,
   Pressable,
@@ -9,9 +9,13 @@ import {
   View,
 } from 'react-native';
 
+import { ThemeColors } from '@/constants/colors';
 import { useSettings } from '@/context/settingsContext';
 
 export default function SignUpScreen() {
+  // Follow the chosen theme (light, dark or high contrast) instead of always light.
+  const { colors: Colors } = useSettings();
+  const styles = useMemo(() => makeStyles(Colors), [Colors]);
   // tracking variables starting as blank strings
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -49,7 +53,7 @@ export default function SignUpScreen() {
         <TextInput
           style={styles.underlineInput}
           placeholder="jamie@example.com"
-          placeholderTextColor={`${Colors.textPrimary}40`}
+          placeholderTextColor={Colors.inputPlaceholder}
           keyboardType="email-address"
           autoCapitalize="none"
           value={email}
@@ -63,7 +67,7 @@ export default function SignUpScreen() {
           <TextInput
             style={[styles.underlineInput, { flex: 1, borderBottomWidth: 0, marginTop: 0, marginBottom: 0 }]}
             placeholder="••••••••••••"
-            placeholderTextColor={`${Colors.textPrimary}40`}
+            placeholderTextColor={Colors.inputPlaceholder}
             secureTextEntry={!showPassword}
             // hides text behind security dots when showPassword is false
             autoCapitalize="none"
@@ -83,7 +87,7 @@ export default function SignUpScreen() {
         <TextInput
           style={styles.underlineInput}
           placeholder="••••••••••••"
-          placeholderTextColor={`${Colors.textPrimary}40`}
+          placeholderTextColor={Colors.inputPlaceholder}
           secureTextEntry={!showPassword}
           // reuses the same toggle state to hide confirm password dots
           autoCapitalize="none"
@@ -129,7 +133,8 @@ export default function SignUpScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(Colors: ThemeColors) {
+  return StyleSheet.create({
   container: {
     backgroundColor: Colors.background,
     paddingHorizontal: 25,
@@ -266,3 +271,4 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
   },
 });
+}

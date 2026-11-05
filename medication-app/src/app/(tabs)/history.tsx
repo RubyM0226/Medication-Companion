@@ -1,4 +1,4 @@
-import React from 'react'; 
+import React, { useMemo } from 'react';
 import { 
   ScrollView,
   StyleSheet,
@@ -6,8 +6,12 @@ import {
   View,
 } from 'react-native';
 
-import { Colors } from '@/constants/colors'; 
+import { ThemeColors } from '@/constants/colors';
+import { useSettings } from '@/context/settingsContext';
 export default function HistoryScreen() {
+  // Follow the chosen theme (light, dark or high contrast) instead of always light.
+  const { colors: Colors } = useSettings();
+  const styles = useMemo(() => makeStyles(Colors), [Colors]);
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {/* Page Title - Clean and flat typography matching the home tab */}
@@ -86,7 +90,8 @@ export default function HistoryScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(Colors: ThemeColors) {
+  return StyleSheet.create({
   container: {
     backgroundColor: Colors.background, 
     paddingHorizontal: 20,
@@ -207,3 +212,4 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
   },
 });
+}
