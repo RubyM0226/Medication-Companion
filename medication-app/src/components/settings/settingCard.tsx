@@ -1,4 +1,4 @@
-// Bordered card that every Settings row sits in.
+// Card that every Settings row sits in. Same look as the app's other cards.
 
 import { ReactNode } from 'react';
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
@@ -12,11 +12,20 @@ export function SettingCard({
   children: ReactNode;
   style?: StyleProp<ViewStyle>;
 }) {
-  const { colors, touchTarget } = useSettings();
+  const { colors, touchTarget, toggles } = useSettings();
 
   return (
     <View
-      style={[styles.card, { borderColor: colors.textPrimary, minHeight: touchTarget + 24 }, style]}>
+      style={[
+        styles.card,
+        {
+          backgroundColor: colors.surface,
+          borderColor: toggles.highContrast ? colors.textPrimary : colors.ringTrack,
+          borderWidth: toggles.highContrast ? 2 : 1,
+          minHeight: touchTarget + 24,
+        },
+        style,
+      ]}>
       {children}
     </View>
   );
@@ -27,8 +36,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 14,
     marginBottom: 12,
-    borderWidth: 1.5,
-    borderRadius: 12,
+    borderRadius: 18,
     justifyContent: 'center',
   },
 });

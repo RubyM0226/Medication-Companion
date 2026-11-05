@@ -3,6 +3,7 @@
 
 import { StyleSheet, Text, TextInput, TextInputProps, View } from 'react-native';
 
+import { Fonts } from '@/constants/typography';
 import { useSettings } from '@/context/settingsContext';
 
 type Props = Omit<TextInputProps, 'style'> & {
@@ -18,11 +19,11 @@ export function FormField({ label, help, error, required, multiline, ...inputPro
 
   return (
     <View style={styles.field}>
-      <Text style={[styles.label, { color: colors.textPrimary, fontSize: 16 * fontScale }]}>
+      <Text style={[styles.label, { color: colors.textPrimary, fontSize: 17 * fontScale }]}>
         {fullLabel}
       </Text>
       {help ? (
-        <Text style={{ color: colors.textSecondary, fontSize: 14 * fontScale, marginBottom: 6 }}>{help}</Text>
+        <Text style={[styles.help, { color: colors.textSecondary, fontSize: 15 * fontScale }]}>{help}</Text>
       ) : null}
       <TextInput
         {...inputProps}
@@ -33,19 +34,19 @@ export function FormField({ label, help, error, required, multiline, ...inputPro
         style={[
           styles.input,
           {
-            minHeight: multiline ? touchTarget * 2 : touchTarget + 4,
+            minHeight: multiline ? touchTarget * 2 : Math.max(touchTarget + 4, 56),
             backgroundColor: colors.inputBackground,
             color: colors.inputText,
-            borderColor: error ? colors.danger : colors.textPrimary,
-            borderWidth: error ? 2.5 : 1.5,
-            fontSize: 17 * fontScale,
+            borderColor: error ? colors.danger : colors.line,
+            borderWidth: error ? 3 : 2,
+            fontSize: 18 * fontScale,
           },
           multiline && styles.multiline,
         ]}
       />
       {error ? (
         <Text
-          style={[styles.error, { color: colors.danger, fontSize: 14 * fontScale }]}
+          style={[styles.error, { color: colors.danger, fontSize: 15 * fontScale }]}
           accessibilityLiveRegion="polite">
           ⚠ {error}
         </Text>
@@ -56,8 +57,9 @@ export function FormField({ label, help, error, required, multiline, ...inputPro
 
 const styles = StyleSheet.create({
   field: { marginBottom: 18 },
-  label: { fontWeight: '700', marginBottom: 4 },
-  input: { borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10 },
+  label: { fontFamily: Fonts.bodyBold, marginBottom: 6 },
+  help: { fontFamily: Fonts.body, marginBottom: 6 },
+  input: { fontFamily: Fonts.body, borderRadius: 14, paddingHorizontal: 16, paddingVertical: 10 },
   multiline: { textAlignVertical: 'top' },
-  error: { marginTop: 6, fontWeight: '700' },
+  error: { fontFamily: Fonts.bodyBold, marginTop: 6 },
 });

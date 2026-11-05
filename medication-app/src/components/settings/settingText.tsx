@@ -2,6 +2,7 @@
 
 import { StyleSheet, Text, View } from 'react-native';
 
+import { Fonts } from '@/constants/typography';
 import { useSettings } from '@/context/settingsContext';
 
 export function SettingText({
@@ -42,6 +43,6 @@ const styles = StyleSheet.create({
   row: { flex: 1, flexDirection: 'row', alignItems: 'center', marginRight: 12 },
   icon: { width: 40 },
   textColumn: { flex: 1 },
-  label: { fontWeight: '600' },
-  note: { marginTop: 4 },
+  label: { fontFamily: Fonts.bodyBold },
+  note: { fontFamily: Fonts.body, marginTop: 4 },
 });
