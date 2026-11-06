@@ -1,13 +1,18 @@
-import React from 'react'; 
-import { 
+import {
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
 
-import { Colors } from '@/constants/colors'; 
+import { ThemeColors } from '@/constants/colors';
+import { useSettings } from '@/context/settingsContext';
+
 export default function HistoryScreen() {
+  // Grab the automatically resolved colors from your settings context
+  const { colors } = useSettings();
+  const styles = createStyles(colors);
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {/* Page Title - Clean and flat typography matching the home tab */}
@@ -86,9 +91,10 @@ export default function HistoryScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+// Generates style rules dynamically depending on which color palette object is provided
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
-    backgroundColor: Colors.background, 
+    backgroundColor: colors.background, 
     paddingHorizontal: 20,
     paddingTop: 60,
     paddingBottom: 40,
@@ -100,28 +106,28 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
     letterSpacing: -0.5,
   },
   subheading: {
     fontSize: 16,
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
     opacity: 0.8,
     marginTop: 4,
   },
   timelineSectionTitle: {
     fontSize: 12,
     fontWeight: '800',
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
     letterSpacing: 1,
     opacity: 0.6,
     marginTop: 10,
     marginBottom: 2,
   },
   card: {
-    backgroundColor: Colors.background,
+    backgroundColor: colors.background,
     borderWidth: 1,
-    borderColor: Colors.textPrimary,
+    borderColor: colors.textPrimary,
     padding: 20,
     borderRadius: 16,
     gap: 12,
@@ -134,16 +140,16 @@ const styles = StyleSheet.create({
   medicationName: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
   },
   medDetailText: {
     fontSize: 14,
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
     opacity: 0.7,
     marginTop: -8, // Pulls the dosage text slightly closer underneath the medicine name
   },
   statusBadge: {
-    backgroundColor: Colors.primary, // Uses theme teal fill
+    backgroundColor: colors.primary, // Uses theme teal fill
     paddingVertical: 4,
     paddingHorizontal: 8,
     borderRadius: 6,
@@ -151,11 +157,11 @@ const styles = StyleSheet.create({
   statusBadgeText: {
     fontSize: 10,
     fontWeight: '700',
-    color: Colors.onPrimary, // High-contrast text on top of the teal background
+    color: colors.onPrimary, // High-contrast text on top of the teal background
   },
   pausedBadge: {
     borderWidth: 1,
-    borderColor: Colors.danger, // Outline utilizing your semantic danger red/orange color role
+    borderColor: colors.danger, // Outline utilizing your semantic danger red/orange color role
     paddingVertical: 3,
     paddingHorizontal: 8,
     borderRadius: 6,
@@ -163,14 +169,14 @@ const styles = StyleSheet.create({
   pausedBadgeText: {
     fontSize: 10,
     fontWeight: '700',
-    color: Colors.danger,
+    color: colors.danger,
   },
   dateRow: {
     flexDirection: 'row',
     gap: 32,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: Colors.textPrimary,
+    borderColor: colors.textPrimary,
     paddingVertical: 12,
     marginTop: 4,
     opacity: 0.9,
@@ -181,14 +187,14 @@ const styles = StyleSheet.create({
   dateLabel: {
     fontSize: 10,
     fontWeight: '800',
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
     opacity: 0.5,
     letterSpacing: 0.5,
   },
   dateValue: {
     fontSize: 14,
     fontWeight: '600',
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
   },
   adherenceRow: {
     flexDirection: 'row',
@@ -198,12 +204,12 @@ const styles = StyleSheet.create({
   },
   adherenceLabel: {
     fontSize: 13,
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
     opacity: 0.7,
   },
   adherenceValue: {
     fontSize: 13,
     fontWeight: '700',
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
   },
 });
