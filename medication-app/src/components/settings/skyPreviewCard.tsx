@@ -23,7 +23,7 @@ export function SkyPreviewCard() {
     <SettingCard style={styles.card}>
       <BodyText bold>Sky preview (testing only)</BodyText>
       <BodyText size="meta" muted>
-        Shows each time of day’s sky. Light theme only, and high contrast turns the sky off.
+        Shows each time of day’s sky in the light theme. Dark mode always shows the night sky, and high contrast turns the sky off.
       </BodyText>
       <View style={styles.chips} accessibilityRole="radiogroup" accessibilityLabel="Sky preview">
         {OPTIONS.map((option) => (

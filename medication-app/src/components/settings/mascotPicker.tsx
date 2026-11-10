@@ -3,6 +3,7 @@
 
 import { Pressable, StyleSheet, View } from 'react-native';
 
+import { AppIcon } from '@/components/appIcon';
 import { MascotDisplay } from '@/components/mascotDisplay';
 import { SettingCard } from '@/components/settings/settingCard';
 import { Text } from '@/components/ui/text';
@@ -45,7 +46,7 @@ export function MascotPicker() {
               ]}>
               {option.id === 'none' ? (
                 <View style={[styles.none, { borderColor: colors.textSecondary }]}>
-                  <Text style={{ color: colors.textPrimary, fontSize: 28 }}>⊘</Text>
+                  <AppIcon name="none" size={30} color={colors.textPrimary} />
                 </View>
               ) : (
                 <MascotDisplay choice={option.id} size={64} />

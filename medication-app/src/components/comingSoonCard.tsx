@@ -3,10 +3,11 @@
 
 import { StyleSheet, View } from 'react-native';
 
+import { IconName } from '@/components/appIcon';
 import { SettingCard } from '@/components/settings/settingCard';
 import { SettingText } from '@/components/settings/settingText';
 
-export function ComingSoonCard({ icon, label, note }: { icon: string; label: string; note: string }) {
+export function ComingSoonCard({ icon, label, note }: { icon: IconName; label: string; note: string }) {
   return (
     <View
       accessible

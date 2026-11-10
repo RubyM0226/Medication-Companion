@@ -110,7 +110,7 @@ export function ScheduleFields({
               />
             ))}
           </View>
-          {errors.days ? <Text style={error} accessibilityLiveRegion="polite">⚠ {errors.days}</Text> : null}
+          {errors.days ? <Text style={error} accessibilityLiveRegion="polite">{errors.days}</Text> : null}
         </View>
       ) : null}
 
@@ -169,7 +169,7 @@ export function ScheduleFields({
             </View>
           ) : null}
 
-          {errors.times ? <Text style={error} accessibilityLiveRegion="polite">⚠ {errors.times}</Text> : null}
+          {errors.times ? <Text style={error} accessibilityLiveRegion="polite">{errors.times}</Text> : null}
         </View>
       )}
     </View>

@@ -71,7 +71,7 @@ export default function DrugDetailsScreen() {
 
         {state.status === 'error' ? (
           <View style={[styles.card, { borderColor: colors.danger, borderWidth: 2.5 }]}>
-            <Text style={[text, styles.bold, { color: colors.danger }]}>⚠ Could not load this label</Text>
+            <Text style={[text, styles.bold, { color: colors.danger }]}>Could not load this label</Text>
             <Text style={text}>{state.message}</Text>
             <AccessibleButton
               label="Try again"
@@ -247,12 +247,12 @@ function LabelDetails({ label }: { label: DrugLabel }) {
         {heading('Coming soon')}
         {/* FUTURE BACKEND: both need user accounts and server-side services. */}
         <ComingSoonCard
-          icon="⇄"
+          icon="interactions"
           label="Check interactions with my medicines"
           note="Needs your saved medicines and an interaction checking service."
         />
         <ComingSoonCard
-          icon="👥"
+          icon="caregiver"
           label="Share with a caregiver"
           note="Needs accounts and secure sharing, which are not built yet."
         />

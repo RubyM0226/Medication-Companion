@@ -1,272 +1,94 @@
-import React, { useMemo, useState } from 'react';
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+// Sign up. The form and checks are ready; creating an account is not
+// connected yet. FUTURE BACKEND: call Supabase auth in register().
+//
+// Design refresh: labelled fields in the app's style, sentence-case labels,
+// messages on the screen instead of pop-ups, and Log in opens Log in.
 
-import { Text, TextInput } from '@/components/ui/text';
-import { ThemeColors } from '@/constants/colors';
-import { useSettings } from '@/context/settingsContext';
+import { router } from 'expo-router';
+import { useState } from 'react';
+import { AccessibilityInfo, ScrollView, StyleSheet, View } from 'react-native';
+
+import { AccessibleButton } from '@/components/accessibleButton';
+import { AuthIntro, AuthMessage, AuthMessageText, AuthSection, PrivacyNote, ShowPasswordToggle } from '@/components/auth/authParts';
+import { FormField } from '@/components/formField';
 
 export default function SignUpScreen() {
-  // Follow the chosen theme (light, dark or high contrast) instead of always light.
-  const { colors: Colors } = useSettings();
-  const styles = useMemo(() => makeStyles(Colors), [Colors]);
-  // tracking variables starting as blank strings
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [message, setMessage] = useState<AuthMessage>();
 
-  // navigation handler placeholder for going to login screen (already have an account button)
-  const handleNavigateToSignIn = () => {
-    Alert.alert('Navigation Clicked', 'Route user back to SignInScreen component here.');
+  const say = (next: AuthMessage) => {
+    setMessage(next);
+    AccessibilityInfo.announceForAccessibility(next.text);
+  };
+
+  const register = () => {
+    if (!email.trim() || !password || !confirmPassword) {
+      say({ kind: 'error', text: 'Please fill out all fields.' });
+      return;
+    }
+    if (password !== confirmPassword) {
+      say({ kind: 'error', text: 'The passwords do not match. Type the same password in both fields.' });
+      return;
+    }
+    say({ kind: 'info', text: 'Creating accounts is not connected yet. Your medicines are saved on this phone.' });
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* Upper Intro Section */}
-      <View style={styles.brandingSection}>
-        <Text style={styles.brandingHeader}>A calmer way to stay on track.</Text>
-        <Text style={styles.brandingSubheader}>
-          Clear reminders, plain-language facts, and support without judgment.
-        </Text>
-      </View>
-
-      {/* Decorative Section Splitter */}
-      <View style={styles.dividerRow}>
-        <View style={styles.dividerLine} />
-        <Text style={styles.dividerText}>CREATE ACCOUNT</Text>
-        <View style={styles.dividerLine} />
-      </View>
-
-      {/* Form Group Block */}
-      <View style={styles.formContainer}>
-        <Text style={styles.welcomeHeading}>Get Started</Text>
-
-        {/* Email Input Field */}
-        <Text style={styles.fieldLabel}>♦ EMAIL ADDRESS</Text>
-        <TextInput
-          style={styles.underlineInput}
-          placeholder="jamie@example.com"
-          placeholderTextColor={Colors.inputPlaceholder}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          value={email}
-          onChangeText={setEmail}
-          // links input to React state so updates state var automatically with every typed letter.
-        />
-
-        {/* Password Input Field */}
-        <Text style={styles.fieldLabel}>♦ PASSWORD</Text>
-        <View style={styles.passwordRow}>
-          <TextInput
-            style={[styles.underlineInput, { flex: 1, borderBottomWidth: 0, marginTop: 0, marginBottom: 0 }]}
-            placeholder="••••••••••••"
-            placeholderTextColor={Colors.inputPlaceholder}
-            secureTextEntry={!showPassword}
-            // hides text behind security dots when showPassword is false
+    <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets>
+      <View style={styles.column}>
+        <AuthIntro />
+        <AuthSection title="Get started">
+          <FormField
+            label="Email address"
+            required
+            value={email}
+            onChangeText={setEmail}
+            placeholder="jamie@example.com"
+            keyboardType="email-address"
             autoCapitalize="none"
+            autoComplete="email"
+            textContentType="emailAddress"
+          />
+          <FormField
+            label="Password"
+            required
             value={password}
             onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+            autoCapitalize="none"
+            autoComplete="new-password"
+            textContentType="newPassword"
           />
-          <Pressable 
-            onPress={() => setShowPassword(!showPassword)}
-            // flips boolean val for showpassword
-          >
-            <Text style={styles.showPasswordText}>{showPassword ? 'Hide' : 'Show'}</Text>
-          </Pressable>
-        </View>
+          <FormField
+            label="Confirm password"
+            required
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            secureTextEntry={!showPassword}
+            autoCapitalize="none"
+            autoComplete="new-password"
+            textContentType="newPassword"
+          />
+          <ShowPasswordToggle shown={showPassword} onChange={setShowPassword} />
+        </AuthSection>
 
-        {/* Confirm Password Input Field */}
-        <Text style={styles.fieldLabel}>♦ CONFIRM PASSWORD</Text>
-        <TextInput
-          style={styles.underlineInput}
-          placeholder="••••••••••••"
-          placeholderTextColor={Colors.inputPlaceholder}
-          secureTextEntry={!showPassword}
-          // reuses the same toggle state to hide confirm password dots
-          autoCapitalize="none"
-          value={confirmPassword}
-          onChangeText={setConfirmPassword}
+        <AuthMessageText message={message} />
+        <AccessibleButton label="Create account" variant="primary" onPress={register} />
+        <AccessibleButton
+          label="Already have an account? Log in"
+          onPress={() => router.replace('/login')}
+          accessibilityHint="Opens Log in"
         />
-      </View>
-
-      {/* Primary Call to Action Button, aka Register Button */}
-      <Pressable 
-        style={[styles.button, styles.primaryButton]}
-        onPress={() => {
-          //if any field is empty, show alert. If passwords don't match, show alert. Otherwise, show success alert.
-          if (!email || !password || !confirmPassword) {
-            Alert.alert('Error', 'Please fill out all fields.');
-            return;
-          }
-          if (password !== confirmPassword) {
-            Alert.alert('Error', 'Passwords do not match.');
-            return;
-          }
-          Alert.alert('Registration Clicked', `Creating account logic path for: ${email}`);
-        }}
-      >
-        <Text style={styles.primaryButtonText}>Register →</Text>
-      </Pressable>
-
-      {/* Sign In Navigation - Back to login button functionality */}
-      <Pressable style={styles.footerLinkButton} onPress={handleNavigateToSignIn}>
-        <Text style={styles.footerLinkText}>
-          Already have an account? <Text style={styles.footerLinkBold}>Sign in</Text>
-        </Text>
-      </Pressable>
-
-      {/* Privacy Guarantee Disclaimer Container */}
-      <View style={styles.privacyCard}>
-        <Text style={styles.privacyHeader}>PRIVACY</Text>
-        <Text style={styles.privacyText}>
-          Your medication information is encrypted. You control what is shared and with whom.
-        </Text>
+        <PrivacyNote />
       </View>
     </ScrollView>
   );
 }
 
-function makeStyles(Colors: ThemeColors) {
-  return StyleSheet.create({
-  container: {
-    paddingHorizontal: 25,
-    paddingTop: 70,
-    paddingBottom: 40,
-    gap: 16,
-  },
-  brandingSection: {
-    marginTop: 20,
-    marginBottom: 10,
-    gap: 12,
-  },
-  brandingHeader: {
-    fontSize: 34,
-    fontWeight: 'bold',
-    color: Colors.primary, 
-    letterSpacing: -0.5,
-    lineHeight: 40,
-  },
-  brandingSubheader: {
-    fontSize: 16,
-    color: Colors.textPrimary,
-    opacity: 0.7,
-    lineHeight: 22,
-  },
-  dividerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginVertical: 14,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: Colors.textPrimary,
-    opacity: 0.2,
-  },
-  dividerText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    opacity: 0.5,
-    letterSpacing: 1.5,
-  },
-  formContainer: {
-    gap: 12,
-  },
-  welcomeHeading: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: Colors.textPrimary,
-    marginBottom: 12,
-  },
-  fieldLabel: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    opacity: 0.6,
-    letterSpacing: 1,
-    marginTop: 8,
-  },
-  underlineInput: {
-    borderBottomWidth: 1,
-    borderColor: Colors.textPrimary,
-    paddingVertical: 10,
-    fontSize: 16,
-    color: Colors.textPrimary,
-    marginTop: -4,
-    marginBottom: 12,
-  },
-  passwordRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderColor: Colors.textPrimary,
-    paddingRight: 4,
-    marginBottom: 12,
-  },
-  showPasswordText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.primary,
-  },
-  button: {
-    borderWidth: 1,
-    borderColor: Colors.primary,
-    borderRadius: 24,
-    paddingVertical: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
-  },
-  primaryButton: {
-    backgroundColor: Colors.primary,
-  },
-  primaryButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.onPrimary,
-  },
-  footerLinkButton: {
-    alignItems: 'center',
-    marginVertical: 8,
-  },
-  footerLinkText: {
-    fontSize: 14,
-    color: Colors.textPrimary,
-    opacity: 0.8,
-  },
-  footerLinkBold: {
-    fontWeight: '700',
-    color: Colors.primary,
-  },
-  privacyCard: {
-    backgroundColor: Colors.background,
-    borderWidth: 1,
-    borderColor: Colors.textPrimary,
-    opacity: 0.7,
-    padding: 16,
-    borderRadius: 12,
-    gap: 4,
-    marginTop: 20,
-  },
-  privacyHeader: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    letterSpacing: 1,
-    opacity: 0.6,
-  },
-  privacyText: {
-    fontSize: 13,
-    lineHeight: 18,
-    color: Colors.textPrimary,
-  },
+const styles = StyleSheet.create({
+  content: { padding: 20, paddingBottom: 48 },
+  column: { width: '100%', maxWidth: 560, alignSelf: 'center', gap: 12 },
 });
-}

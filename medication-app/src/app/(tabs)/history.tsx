@@ -15,6 +15,7 @@ import { doseMark, doseStatusWords } from '@/components/history/dayStatus';
 import { WeekGrid } from '@/components/history/weekGrid';
 import { BodyText, Heading } from '@/components/ui/appText';
 import { Card } from '@/components/ui/card';
+import { ScreenTitle } from '@/components/ui/screenTitle';
 import { StatusMark } from '@/components/ui/statusMark';
 import { MedicationStatus } from '@/constants/colors';
 import { headingStyle, TypeScale } from '@/constants/typography';
@@ -80,6 +81,7 @@ export default function HistoryScreen() {
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <View style={styles.column}>
+        <ScreenTitle title="History" />
         <View style={styles.weekRow}>
           <AccessibleButton
             label="‹ Earlier"

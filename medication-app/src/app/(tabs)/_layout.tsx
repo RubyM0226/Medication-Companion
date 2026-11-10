@@ -25,10 +25,9 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerStyle: { backgroundColor: 'transparent' },
-        headerTintColor: colors.textPrimary,
-        headerTitleStyle: { fontFamily: Fonts.heading, fontSize: 18 * fontScale },
-        headerShadowVisible: false,
+        // Each tab draws its own large title (ScreenTitle), so the small
+        // navigation header would only repeat it.
+        headerShown: false,
         // Transparent so the sky from the root layout shows through.
         sceneStyle: { backgroundColor: 'transparent' },
         tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.ringTrack, minHeight: 64 },
@@ -40,13 +39,13 @@ export default function TabLayout() {
       }}>
       <Tabs.Screen
         name="home"
-        options={{ title: 'Today', headerShown: false, tabBarIcon: tabIcon('home', 'homeActive') }}
+        options={{ title: 'Today', tabBarIcon: tabIcon('home', 'homeActive') }}
       />
       <Tabs.Screen
         name="medications"
         options={{
           title: 'Meds',
-          headerTitle: 'My medicines',
+          tabBarAccessibilityLabel: 'My medicines',
           tabBarIcon: tabIcon('medications', 'medicationsActive'),
         }}
       />

@@ -1,5 +1,5 @@
 // Labelled text field with an optional help line and error message. The
-// error is shown as text with an icon and a thicker border, not color alone.
+// error is shown in bold text with a thicker border, not color alone.
 
 import { StyleSheet, TextInputProps, View } from 'react-native';
 
@@ -49,7 +49,7 @@ export function FormField({ label, help, error, required, multiline, ...inputPro
         <Text
           style={[styles.error, { color: colors.danger, fontSize: 15 * fontScale }]}
           accessibilityLiveRegion="polite">
-          ⚠ {error}
+          {error}
         </Text>
       ) : null}
     </View>

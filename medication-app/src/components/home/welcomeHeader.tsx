@@ -1,4 +1,7 @@
-// Date, time-of-day greeting, the chosen mascot and a profile button.
+// Date, time-of-day greeting and a profile button.
+// The dinosaur companion was taken off Today in the design refresh. Its
+// pictures and the saved choice are still in constants/mascots.ts and
+// MascotDisplay if the team wants it back.
 // FUTURE BACKEND: there is no profile system yet, so the greeting has no
 // name. Pass displayName once accounts exist.
 
@@ -6,7 +9,6 @@ import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppIcon } from '@/components/appIcon';
-import { MascotDisplay } from '@/components/mascotDisplay';
 import { BodyText, Heading } from '@/components/ui/appText';
 import { getTimeOfDay, greetingFor as greetingForTime, useTimeOfDay } from '@/components/ui/skyBackground';
 import { useSettings } from '@/context/settingsContext';
@@ -17,7 +19,7 @@ export function greetingFor(date: Date) {
 }
 
 export function WelcomeHeader({ now, displayName }: { now: Date; displayName?: string }) {
-  const { colors, touchTarget, mascot } = useSettings();
+  const { colors, touchTarget } = useSettings();
   // Follows the sky, including the temporary sky preview in Settings.
   const timeGreeting = greetingForTime(useTimeOfDay(now));
   const greeting = displayName ? `${timeGreeting}, ${displayName}` : timeGreeting;
@@ -30,7 +32,6 @@ export function WelcomeHeader({ now, displayName }: { now: Date; displayName?: s
         </BodyText>
         <Heading level="title">{greeting}</Heading>
       </View>
-      {mascot !== 'none' ? <MascotDisplay size={72} /> : null}
       <Pressable
         onPress={() => router.navigate('/settings')}
         accessibilityRole="button"

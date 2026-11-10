@@ -9,7 +9,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 
-import { SkyBackground, skyTopColor, useTimeOfDay } from '@/components/ui/skyBackground';
+import { HeaderSky, SkyBackground, skyTopColor, useTimeOfDay } from '@/components/ui/skyBackground';
 import { Fonts } from '@/constants/typography';
 import { SettingsProvider, useSettings } from '@/context/settingsContext';
 
@@ -71,6 +71,8 @@ function RootStack() {
           headerStyle: {
             backgroundColor: skyTopColor(timeOfDay, isDark, toggles.highContrast, colors.background),
           },
+          // Draws the grain in the header too, so it does not stop below it.
+          headerBackground: () => <HeaderSky />,
           headerTintColor: colors.textPrimary,
           headerTitleStyle: { fontFamily: Fonts.heading, fontSize: 18 * fontScale },
           headerShadowVisible: false,

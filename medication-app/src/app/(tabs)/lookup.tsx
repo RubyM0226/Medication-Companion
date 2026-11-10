@@ -13,7 +13,8 @@ import {
 import { AccessibleButton } from '@/components/accessibleButton';
 import { DrugResultRow } from '@/components/lookup/drugResultRow';
 import { SearchBar } from '@/components/lookup/searchBar';
-import { Text, TextInput } from '@/components/ui/text';
+import { ScreenTitle } from '@/components/ui/screenTitle';
+import { Text } from '@/components/ui/text';
 import { useSettings } from '@/context/settingsContext';
 import { MIN_QUERY_LENGTH, useDrugSearch } from '@/hooks/useDrugSearch';
 
@@ -64,10 +65,9 @@ export default function LookupScreen() {
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled">
       <View style={styles.column}>
-        <Text style={[styles.title, { color: colors.textPrimary, fontSize: 30 * scale }]} accessibilityRole="header">
-          Drug Lookup
-        </Text>
-        <Text style={[muted, styles.subtitle]}>Search official FDA drug labels by name.</Text>
+        <View style={styles.subtitle}>
+          <ScreenTitle title="Ask Pixie" subtitle="Look up a medicine in the official FDA drug labels." />
+        </View>
 
         <SearchBar
           ref={inputRef}
@@ -177,7 +177,6 @@ const styles = StyleSheet.create({
   screen: { flex: 1 },
   content: { padding: 20, paddingBottom: 40 },
   column: { width: '100%', maxWidth: 640, alignSelf: 'center' },
-  title: { fontWeight: '700' },
   subtitle: { marginBottom: 16 },
   body: { marginTop: 24 },
   heading: { fontWeight: '700', marginBottom: 10 },

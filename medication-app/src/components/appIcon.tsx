@@ -28,6 +28,19 @@ const ICONS = {
   add: { ios: 'plus.circle.fill', android: 'add', web: 'add' },
   info: { ios: 'info.circle', android: 'info', web: 'info' },
   chevron: { ios: 'chevron.right', android: 'chevron_right', web: 'chevron_right' },
+  // Settings rows. These replace the emoji the rows used before.
+  contrast: { ios: 'circle.lefthalf.filled', android: 'contrast', web: 'contrast' },
+  colorBlind: { ios: 'eye', android: 'visibility', web: 'visibility' },
+  motion: { ios: 'figure.walk', android: 'animation', web: 'animation' },
+  plainLanguage: { ios: 'text.bubble', android: 'chat', web: 'chat' },
+  touch: { ios: 'hand.tap', android: 'touch_app', web: 'touch_app' },
+  visualAlert: { ios: 'lightbulb', android: 'lightbulb', web: 'lightbulb' },
+  vibrate: { ios: 'iphone.radiowaves.left.and.right', android: 'vibration', web: 'vibration' },
+  sound: { ios: 'bell', android: 'notifications', web: 'notifications' },
+  language: { ios: 'globe', android: 'language', web: 'language' },
+  theme: { ios: 'sun.max', android: 'light_mode', web: 'light_mode' },
+  interactions: { ios: 'arrow.left.arrow.right', android: 'swap_horiz', web: 'swap_horiz' },
+  none: { ios: 'nosign', android: 'block', web: 'block' },
 } satisfies Record<string, SymbolName>;
 
 export type IconName = keyof typeof ICONS;

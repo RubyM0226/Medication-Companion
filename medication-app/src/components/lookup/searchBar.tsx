@@ -72,7 +72,6 @@ export const SearchBar = forwardRef<TextInputInstance, Props>(function SearchBar
         ) : null}
         <AccessibleButton
           label="Search"
-          icon="🔍"
           variant="primary"
           onPress={onSubmit}
           accessibilityHint="Searches FDA drug labels"

@@ -59,7 +59,6 @@ export function RemindLaterModal({ visible, onClose }: { visible: boolean; onClo
             <AccessibleButton
               key={option.minutes}
               label={option.label}
-              icon="⏰"
               onPress={() => choose(option.minutes)}
               disabled={busy}
             />

@@ -81,7 +81,7 @@ export function DoseConfirmationModal({ dose, onClose }: { dose: Dose<Medication
           />
           <View style={styles.row}>
             <AccessibleButton label="I skipped it" icon="—" onPress={() => save('skipped')} disabled={saving} style={styles.half} />
-            <AccessibleButton label="I missed it" icon="⚠" onPress={() => save('missed')} disabled={saving} style={styles.half} />
+            <AccessibleButton label="I missed it" icon="✕" onPress={() => save('missed')} disabled={saving} style={styles.half} />
           </View>
           <AccessibleButton label="Cancel" onPress={close} disabled={saving} />
         </>

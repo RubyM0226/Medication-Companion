@@ -18,6 +18,7 @@ import { SettingToggleRow } from '@/components/settings/settingToggleRow';
 import { SkyPreviewCard } from '@/components/settings/skyPreviewCard';
 import { ThemePicker } from '@/components/settings/themePicker';
 import { StatusBadge } from '@/components/statusBadge';
+import { ScreenTitle } from '@/components/ui/screenTitle';
 import { Text } from '@/components/ui/text';
 import { MedicationStatus } from '@/constants/colors';
 import { SettingItem, SettingsSections } from '@/content/settingsContent';
@@ -35,7 +36,7 @@ export default function SettingsScreen() {
       resetToDefaults();
       AccessibilityInfo.announceForAccessibility('Settings reset to defaults');
     };
-    const message = 'Text size, theme, mascot and every accessibility setting will go back to the default.';
+    const message = 'Text size, theme and every accessibility setting will go back to the default.';
 
     // Alert buttons are not supported on web.
     if (Platform.OS === 'web') {
@@ -97,7 +98,7 @@ export default function SettingsScreen() {
         return (
           <ComingSoonCard
             key="caregiver"
-            icon="👥"
+            icon="caregiver"
             label="Caregiver sharing"
             note="Needs accounts and secure syncing, which are not built yet."
           />
@@ -106,7 +107,7 @@ export default function SettingsScreen() {
         return (
           <View key="language" accessible accessibilityLabel="Language, English. Only English is available right now">
             <SettingCard style={styles.rowCard}>
-              <SettingText icon="🌐" label="Language: English" note="More languages coming later." />
+              <SettingText icon="language" label="Language: English" note="More languages coming later." />
             </SettingCard>
           </View>
         );
@@ -136,12 +137,7 @@ export default function SettingsScreen() {
       style={styles.screen}
       contentContainerStyle={styles.content}>
       <View style={styles.column}>
-        <Text style={[styles.title, text, { fontSize: 32 * scale }]} accessibilityRole="header">
-          Accessibility
-        </Text>
-        <Text style={[{ color: colors.textSecondary, fontSize: 16 * scale }]}>
-          Changes save automatically and apply across the app.
-        </Text>
+        <ScreenTitle title="Settings" subtitle="Changes save automatically and apply across the app." />
 
         {__DEV__ ? <SkyPreviewCard /> : null}
 
@@ -165,7 +161,6 @@ const styles = StyleSheet.create({
   content: { padding: 20, paddingBottom: 40 },
   // Keeps rows a readable width on tablets and web.
   column: { width: '100%', maxWidth: 640, alignSelf: 'center' },
-  title: { fontWeight: '700', marginBottom: 4 },
   sectionTitle: { fontWeight: '600', marginTop: 24, marginBottom: 10 },
   rowCard: { flexDirection: 'row', alignItems: 'center' },
   previewLabel: { fontWeight: '600', marginBottom: 10 },

@@ -11,6 +11,7 @@ import { AppModal } from '@/components/appModal';
 import { PillLook, PillPicker } from '@/components/pillPicker';
 import { BodyText, Heading } from '@/components/ui/appText';
 import { Card } from '@/components/ui/card';
+import { ScreenTitle } from '@/components/ui/screenTitle';
 import { describePill, pillAppearance, PillMark } from '@/components/ui/pillMark';
 import { useSettings } from '@/context/settingsContext';
 import { useMedications } from '@/hooks/useMedications';
@@ -163,9 +164,7 @@ export default function MedicationsScreen() {
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <View style={styles.column}>
         {/* FUTURE BACKEND: replace with account sync when the medications API is ready. */}
-        <BodyText size="meta" muted>
-          Saved on this phone only until accounts are connected.
-        </BodyText>
+        <ScreenTitle title="My medicines" subtitle="Saved on this phone only until accounts are connected." />
 
         <View style={styles.buttons}>
           <AccessibleButton

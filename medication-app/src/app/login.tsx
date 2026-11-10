@@ -1,265 +1,90 @@
-import React, { useMemo, useState } from 'react';
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+// Log in. The form and checks are ready; signing in is not connected yet.
+// FUTURE BACKEND: call Supabase auth in logIn() and reset in forgotPassword().
+//
+// Design refresh: labelled fields in the app's style, sentence-case labels,
+// messages on the screen instead of pop-ups, and Create an account opens
+// Sign up.
 
-import { Text, TextInput } from '@/components/ui/text';
-import { ThemeColors } from '@/constants/colors';
-import { useSettings } from '@/context/settingsContext';
+import { router } from 'expo-router';
+import { useState } from 'react';
+import { AccessibilityInfo, ScrollView, StyleSheet, View } from 'react-native';
 
-export default function SignInScreen() {
-  // Follow the chosen theme (light, dark or high contrast) instead of always light.
-  const { colors: Colors } = useSettings();
-  const styles = useMemo(() => makeStyles(Colors), [Colors]);
-  // email and password start as blank string 
+import { AccessibleButton } from '@/components/accessibleButton';
+import { AuthIntro, AuthMessage, AuthMessageText, AuthSection, PrivacyNote, ShowPasswordToggle } from '@/components/auth/authParts';
+import { FormField } from '@/components/formField';
+
+export default function LogInScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [message, setMessage] = useState<AuthMessage>();
 
-  // navigation handler placeholder for registration routing (new here? create an account button)
-  const handleNavigateToSignUp = () => {
-    Alert.alert('Navigation Clicked', 'Route user to CreateAccountScreen component here.');
+  const say = (next: AuthMessage) => {
+    setMessage(next);
+    AccessibilityInfo.announceForAccessibility(next.text);
+  };
+
+  const logIn = () => {
+    if (!email.trim() || !password) {
+      say({ kind: 'error', text: 'Enter your email address and password.' });
+      return;
+    }
+    say({ kind: 'info', text: 'Logging in is not connected yet. Your medicines are saved on this phone.' });
+  };
+
+  const forgotPassword = () => {
+    say({
+      kind: 'info',
+      text: email.trim()
+        ? `Password reset is not connected yet. When it is, a link will go to ${email.trim()}.`
+        : 'Enter your email address first, then tap Forgot password.',
+    });
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* Upper Intro Section */}
-      <View style={styles.brandingSection}>
-        <Text style={styles.brandingHeader}>A calmer way to stay on track.</Text>
-        <Text style={styles.brandingSubheader}>
-          Clear reminders, plain-language facts, and support without judgment.
-        </Text>
-      </View>
-
-      {/* Decorative Section Splitter */}
-      <View style={styles.dividerRow}>
-        <View style={styles.dividerLine} />
-        <Text style={styles.dividerText}>SIGN IN</Text>
-        <View style={styles.dividerLine} />
-      </View>
-
-      {/* Form Group Block */}
-      <View style={styles.formContainer}>
-        <Text style={styles.welcomeHeading}>Welcome back</Text>
-
-        {/* Email Input Field */}
-        <Text style={styles.fieldLabel}>♦ EMAIL ADDRESS</Text>
-        <TextInput
-          style={styles.underlineInput}
-          placeholder="jamie@example.com"
-          placeholderTextColor={Colors.inputPlaceholder}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          value={email}
-          onChangeText={setEmail} 
-          // links input to React state so updates state var automatically with every typed letter.
-        />
-
-        {/* Password Input Field */}
-        <Text style={styles.fieldLabel}>♦ PASSWORD</Text>
-        <View style={styles.passwordRow}>
-          <TextInput
-            style={[styles.underlineInput, { flex: 1, borderBottomWidth: 0, marginTop: 0, marginBottom: 0 }]}
-            placeholder="••••••••••••"
-            placeholderTextColor={Colors.inputPlaceholder}
-            secureTextEntry={!showPassword} 
-            // hides text behind security dots when showPassword is false
+    <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets>
+      <View style={styles.column}>
+        <AuthIntro />
+        <AuthSection title="Welcome back">
+          <FormField
+            label="Email address"
+            required
+            value={email}
+            onChangeText={setEmail}
+            placeholder="jamie@example.com"
+            keyboardType="email-address"
             autoCapitalize="none"
+            autoComplete="email"
+            textContentType="emailAddress"
+          />
+          <FormField
+            label="Password"
+            required
             value={password}
             onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+            autoCapitalize="none"
+            autoComplete="current-password"
+            textContentType="password"
           />
-          <Pressable 
-            onPress={() => setShowPassword(!showPassword)}
-            // flips boolean val for showpassword
-          > 
-            <Text style={styles.showPasswordText}>{showPassword ? 'Hide' : 'Show'}</Text>
-          </Pressable>
-        </View>
+          <ShowPasswordToggle shown={showPassword} onChange={setShowPassword} />
+        </AuthSection>
 
-        {/* Forgot Password Link - triggers native Alert confirmation popup only for now */}
-        <Pressable 
-          style={styles.forgotPasswordButton}
-          onPress={() => Alert.alert('Reset Password', `A password reset link will be sent to ${email || 'your email'}`)}
-        >
-          <Text style={styles.forgotPasswordText}>Forgot password?</Text>
-        </Pressable>
-      </View>
-
-      {/* Primary Call to Action Button, aka Sign in Button*/}
-      <Pressable 
-        style={[styles.button, styles.primaryButton]}
-        onPress={() => Alert.alert('Sign In clicked', 'Executing validation...')}
-      >
-        <Text style={styles.primaryButtonText}>Sign in →</Text>
-      </Pressable>
-
-      {/* Sign Up Navigation - Create an account button functionality */}
-      <Pressable style={styles.footerLinkButton} onPress={handleNavigateToSignUp}>
-        <Text style={styles.footerLinkText}>
-          New here? <Text style={styles.footerLinkBold}>Create an account</Text>
-        </Text>
-      </Pressable>
-
-      {/* Privacy Guarantee Disclaimer Container */}
-      <View style={styles.privacyCard}>
-        <Text style={styles.privacyHeader}>PRIVACY</Text>
-        <Text style={styles.privacyText}>
-          Your medication information is encrypted. You control what is shared and with whom.
-        </Text>
+        <AuthMessageText message={message} />
+        <AccessibleButton label="Log in" variant="primary" onPress={logIn} />
+        <AccessibleButton label="Forgot password?" onPress={forgotPassword} />
+        <AccessibleButton
+          label="New here? Create an account"
+          onPress={() => router.replace('/signup')}
+          accessibilityHint="Opens Sign up"
+        />
+        <PrivacyNote />
       </View>
     </ScrollView>
   );
 }
 
-function makeStyles(Colors: ThemeColors) {
-  return StyleSheet.create({
-  container: {
-    paddingHorizontal: 25,
-    paddingTop: 70,
-    paddingBottom: 40,
-    gap: 16,
-  },
-  brandingSection: {
-    marginTop: 20,
-    marginBottom: 10,
-    gap: 12,
-  },
-  brandingHeader: {
-    fontSize: 34,
-    fontWeight: 'bold',
-    color: Colors.primary, 
-    letterSpacing: -0.5,
-    lineHeight: 40,
-  },
-  brandingSubheader: {
-    fontSize: 16,
-    color: Colors.textPrimary,
-    opacity: 0.7,
-    lineHeight: 22,
-  },
-  dividerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginVertical: 14,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: Colors.textPrimary,
-    opacity: 0.2,
-  },
-  dividerText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    opacity: 0.5,
-    letterSpacing: 1.5,
-  },
-  formContainer: {
-    gap: 12,
-  },
-  welcomeHeading: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: Colors.textPrimary,
-    marginBottom: 12,
-  },
-  fieldLabel: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    opacity: 0.6,
-    letterSpacing: 1,
-    marginTop: 8,
-  },
-  underlineInput: {
-    borderBottomWidth: 1,
-    borderColor: Colors.textPrimary,
-    paddingVertical: 10,
-    fontSize: 16,
-    color: Colors.textPrimary,
-    marginTop: -4,
-    marginBottom: 12,
-  },
-  passwordRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderColor: Colors.textPrimary,
-    paddingRight: 4,
-    marginBottom: 12,
-  },
-  showPasswordText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.primary,
-  },
-  forgotPasswordButton: {
-    alignSelf: 'flex-start',
-    marginTop: -4,
-    marginBottom: 12,
-  },
-  forgotPasswordText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.primary,
-  },
-  button: {
-    borderWidth: 1,
-    borderColor: Colors.primary,
-    borderRadius: 24,
-    paddingVertical: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
-  },
-  primaryButton: {
-    backgroundColor: Colors.primary,
-  },
-  primaryButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.onPrimary,
-  },
-  footerLinkButton: {
-    alignItems: 'center',
-    marginVertical: 8,
-  },
-  footerLinkText: {
-    fontSize: 14,
-    color: Colors.textPrimary,
-    opacity: 0.8,
-  },
-  footerLinkBold: {
-    fontWeight: '700',
-    color: Colors.primary,
-  },
-  privacyCard: {
-    backgroundColor: Colors.background,
-    borderWidth: 1,
-    borderColor: Colors.textPrimary,
-    opacity: 0.7,
-    padding: 16,
-    borderRadius: 12,
-    gap: 4,
-    marginTop: 20,
-  },
-  privacyHeader: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: Colors.textPrimary,
-    letterSpacing: 1,
-    opacity: 0.6,
-  },
-  privacyText: {
-    fontSize: 13,
-    lineHeight: 18,
-    color: Colors.textPrimary,
-  },
+const styles = StyleSheet.create({
+  content: { padding: 20, paddingBottom: 48 },
+  column: { width: '100%', maxWidth: 560, alignSelf: 'center', gap: 12 },
 });
-}

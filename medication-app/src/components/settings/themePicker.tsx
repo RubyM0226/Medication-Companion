@@ -15,7 +15,7 @@ export function ThemePicker() {
   return (
     <SettingCard>
       <SettingText
-        icon="☀"
+        icon="theme"
         label="Theme"
         note="System matches your phone’s light or dark mode."
       />
