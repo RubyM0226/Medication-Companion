@@ -3,10 +3,11 @@
 // made-up explanation.
 
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { AccessibleButton } from '@/components/accessibleButton';
 import { ReadAloudButton } from '@/components/lookup/readAloudButton';
+import { Text } from '@/components/ui/text';
 import { useSettings } from '@/context/settingsContext';
 import { DrugLabel } from '@/services/openFda';
 import { getPlainLanguageService, PlainLanguageExplanation } from '@/services/plainLanguage';
@@ -62,13 +63,13 @@ export function PlainLanguageCard({
   return (
     <View style={[styles.card, { borderColor: colors.primary }]}>
       <Text style={[styles.title, { color: colors.textPrimary, fontSize: 20 * fontScale }]} accessibilityRole="header">
-        💬 Plain-language explanation
+        Plain-language explanation
       </Text>
 
       {state.status === 'unavailable' ? (
         <View accessible accessibilityLiveRegion="polite">
           <Text style={[styles.unavailableTag, { color: colors.textPrimary, fontSize: 14 * fontScale }]}>
-            NOT AVAILABLE YET
+            Not available yet
           </Text>
           <Text style={text}>
             Simple explanations from our AI assistant are not connected yet. For now, read the
@@ -98,7 +99,7 @@ export function PlainLanguageCard({
       {state.status === 'ready' ? (
         <View style={styles.gap}>
           <Text style={[styles.aiTag, { color: colors.textPrimary, fontSize: 13 * fontScale }]}>
-            AI-GENERATED • may contain mistakes
+            AI-generated · may contain mistakes
           </Text>
           <Text style={text}>{state.explanation.summary}</Text>
           {state.explanation.keyPoints.map((point) => (
@@ -128,8 +129,8 @@ export function PlainLanguageCard({
 const styles = StyleSheet.create({
   card: { borderWidth: 2, borderRadius: 14, padding: 16, marginBottom: 12, gap: 10 },
   title: { fontWeight: '700' },
-  unavailableTag: { fontWeight: '800', letterSpacing: 0.5, marginBottom: 4 },
-  aiTag: { fontWeight: '800', letterSpacing: 0.5 },
+  unavailableTag: { fontWeight: '800', marginBottom: 4 },
+  aiTag: { fontWeight: '800' },
   row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   gap: { gap: 10 },
   bold: { fontWeight: '700' },

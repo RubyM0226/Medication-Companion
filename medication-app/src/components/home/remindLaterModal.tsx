@@ -2,10 +2,10 @@
 // notifications are off or unavailable instead of pretending it worked.
 
 import { useState } from 'react';
-import { Text } from 'react-native';
 
 import { AccessibleButton } from '@/components/accessibleButton';
 import { AppModal } from '@/components/appModal';
+import { Text } from '@/components/ui/text';
 import { useSettings } from '@/context/settingsContext';
 import { remindLater } from '@/services/reminders';
 
@@ -59,7 +59,6 @@ export function RemindLaterModal({ visible, onClose }: { visible: boolean; onClo
             <AccessibleButton
               key={option.minutes}
               label={option.label}
-              icon="⏰"
               onPress={() => choose(option.minutes)}
               disabled={busy}
             />

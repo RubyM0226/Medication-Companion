@@ -1,6 +1,6 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { ReactNode, useEffect, useState } from 'react';
-import { ActivityIndicator, Linking, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Linking, ScrollView, StyleSheet, View } from 'react-native';
 
 import { AccessibleButton } from '@/components/accessibleButton';
 import { ComingSoonCard } from '@/components/comingSoonCard';
@@ -8,6 +8,7 @@ import { Chip } from '@/components/lookup/chip';
 import { ExpandableSection } from '@/components/lookup/expandableSection';
 import { PlainLanguageCard } from '@/components/lookup/plainLanguageCard';
 import { ReadAloudButton } from '@/components/lookup/readAloudButton';
+import { Text } from '@/components/ui/text';
 import { useSettings } from '@/context/settingsContext';
 import { useMedications } from '@/hooks/useMedications';
 import { useReadAloud } from '@/hooks/useReadAloud';
@@ -58,7 +59,7 @@ export default function DrugDetailsScreen() {
 
   return (
     <ScrollView
-      style={[styles.screen, { backgroundColor: colors.background }]}
+      style={styles.screen}
       contentContainerStyle={styles.content}>
       <View style={styles.column}>
         {state.status === 'loading' ? (
@@ -70,7 +71,7 @@ export default function DrugDetailsScreen() {
 
         {state.status === 'error' ? (
           <View style={[styles.card, { borderColor: colors.danger, borderWidth: 2.5 }]}>
-            <Text style={[text, styles.bold, { color: colors.danger }]}>⚠ Could not load this label</Text>
+            <Text style={[text, styles.bold, { color: colors.danger }]}>Could not load this label</Text>
             <Text style={text}>{state.message}</Text>
             <AccessibleButton
               label="Try again"
@@ -246,12 +247,12 @@ function LabelDetails({ label }: { label: DrugLabel }) {
         {heading('Coming soon')}
         {/* FUTURE BACKEND: both need user accounts and server-side services. */}
         <ComingSoonCard
-          icon="⇄"
+          icon="interactions"
           label="Check interactions with my medicines"
           note="Needs your saved medicines and an interaction checking service."
         />
         <ComingSoonCard
-          icon="👥"
+          icon="caregiver"
           label="Share with a caregiver"
           note="Needs accounts and secure sharing, which are not built yet."
         />

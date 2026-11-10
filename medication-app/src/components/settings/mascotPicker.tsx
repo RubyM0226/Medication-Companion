@@ -1,10 +1,12 @@
 // Choose a dinosaur companion, or none. A radio group: the selected tile gets
 // a thicker border, a check mark and the word "Selected", not just color.
 
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
+import { AppIcon } from '@/components/appIcon';
 import { MascotDisplay } from '@/components/mascotDisplay';
 import { SettingCard } from '@/components/settings/settingCard';
+import { Text } from '@/components/ui/text';
 import { MASCOTS, MascotChoice } from '@/constants/mascots';
 import { useSettings } from '@/context/settingsContext';
 
@@ -44,7 +46,7 @@ export function MascotPicker() {
               ]}>
               {option.id === 'none' ? (
                 <View style={[styles.none, { borderColor: colors.textSecondary }]}>
-                  <Text style={{ color: colors.textPrimary, fontSize: 28 }}>⊘</Text>
+                  <AppIcon name="none" size={30} color={colors.textPrimary} />
                 </View>
               ) : (
                 <MascotDisplay choice={option.id} size={64} />

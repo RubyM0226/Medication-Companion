@@ -1,6 +1,8 @@
 // Static content for the Settings screen. Labels live here so copy can be
 // changed (or translated later) without touching layout code.
 
+import type { IconName } from '@/components/appIcon';
+
 export type ToggleSettingKey =
   | 'highContrast'
   | 'reduceMotion'
@@ -17,7 +19,7 @@ export type ThemeMode = 'system' | 'light' | 'dark';
 export type ToggleSetting = {
   type: 'toggle';
   key: ToggleSettingKey;
-  icon: string;
+  icon: IconName;
   label: string;
   hint: string;
   // Shown under the label when the setting is saved now but only takes effect
@@ -69,21 +71,21 @@ const REMINDERS_PENDING = 'Saved now. Takes effect once dose reminders are added
 
 export const SettingsSections: SettingsSection[] = [
   {
-    title: 'Visual Accessibility',
+    title: 'Visual accessibility',
     items: [
       { type: 'fontSize' },
       { type: 'theme' },
       {
         type: 'toggle',
         key: 'highContrast',
-        icon: '◐',
+        icon: 'contrast',
         label: 'High contrast',
         hint: 'Uses black, white and strong colors that are easier to see. Works with light and dark themes.',
       },
       {
         type: 'toggle',
         key: 'colorBlindFriendly',
-        icon: '◈',
+        icon: 'colorBlind',
         label: 'Color-blind-friendly indicators',
         hint: 'Uses blue and orange with different border styles for medication status',
       },
@@ -91,19 +93,19 @@ export const SettingsSections: SettingsSection[] = [
       {
         type: 'toggle',
         key: 'reduceMotion',
-        icon: '◎',
+        icon: 'motion',
         label: 'Reduce motion',
         hint: 'Turns off sliding screen transitions and other moving effects',
       },
     ],
   },
   {
-    title: 'Reading & Comprehension',
+    title: 'Reading and comprehension',
     items: [
       {
         type: 'toggle',
         key: 'plainLanguage',
-        icon: '💬',
+        icon: 'plainLanguage',
         label: 'Plain-language explanations',
         hint: 'Explains medicines in everyday words instead of medical terms',
         // FUTURE BACKEND: explanations come from the raia AI agent, which is
@@ -113,7 +115,7 @@ export const SettingsSections: SettingsSection[] = [
       {
         type: 'toggle',
         key: 'readRemindersAloud',
-        icon: '🔊',
+        icon: 'speaker',
         label: 'Read reminders aloud',
         hint: 'Speaks the medication name and dose when a reminder appears',
         pendingNote: REMINDERS_PENDING,
@@ -121,24 +123,24 @@ export const SettingsSections: SettingsSection[] = [
     ],
   },
   {
-    title: 'Motor Accessibility',
+    title: 'Motor accessibility',
     items: [
       {
         type: 'toggle',
         key: 'largeTouchTargets',
-        icon: '☝',
+        icon: 'touch',
         label: 'Larger touch targets',
         hint: 'Makes buttons and switches bigger and easier to tap',
       },
     ],
   },
   {
-    title: 'Hearing Accessibility',
+    title: 'Hearing accessibility',
     items: [
       {
         type: 'toggle',
         key: 'visualAlerts',
-        icon: '💡',
+        icon: 'visualAlert',
         label: 'Visual reminder alerts',
         hint: 'Shows a large on-screen banner when a dose is due',
         pendingNote: REMINDERS_PENDING,
@@ -146,7 +148,7 @@ export const SettingsSections: SettingsSection[] = [
       {
         type: 'toggle',
         key: 'vibrateReminders',
-        icon: '📳',
+        icon: 'vibrate',
         label: 'Vibrate',
         hint: 'Vibrates the phone when a dose is due',
         pendingNote: REMINDERS_PENDING,
@@ -154,7 +156,7 @@ export const SettingsSections: SettingsSection[] = [
       {
         type: 'toggle',
         key: 'reminderSound',
-        icon: '🔔',
+        icon: 'sound',
         label: 'Play sound',
         hint: 'Plays a sound when a dose is due',
         pendingNote: REMINDERS_PENDING,
@@ -162,7 +164,7 @@ export const SettingsSections: SettingsSection[] = [
     ],
   },
   {
-    title: 'Caregiver & Preferences',
-    items: [{ type: 'mascot' }, { type: 'caregiver' }, { type: 'language' }, { type: 'reset' }],
+    title: 'Caregiver and preferences',
+    items: [{ type: 'caregiver' }, { type: 'language' }, { type: 'reset' }],
   },
 ];

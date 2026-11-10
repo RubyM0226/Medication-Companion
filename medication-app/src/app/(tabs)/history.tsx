@@ -1,215 +1,215 @@
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+// History: a week of doses at a glance, from the same dose logs Today writes.
+// Design refresh: a week grid of checks and crosses per medicine, a summary,
+// a key to the marks, and the selected day's doses listed in words.
+//
+// Replaces the earlier placeholder cards (Medication A / C), which used sample
+// data. FUTURE BACKEND: past treatment courses (started, stopped, adherence)
+// can come back as a section once removed medicines are listed.
 
-import { ThemeColors } from '@/constants/colors';
+import { router } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
+
+import { AccessibleButton } from '@/components/accessibleButton';
+import { doseMark, doseStatusWords } from '@/components/history/dayStatus';
+import { WeekGrid } from '@/components/history/weekGrid';
+import { BodyText, Heading } from '@/components/ui/appText';
+import { Card } from '@/components/ui/card';
+import { ScreenTitle } from '@/components/ui/screenTitle';
+import { StatusMark } from '@/components/ui/statusMark';
+import { MedicationStatus } from '@/constants/colors';
+import { headingStyle, TypeScale } from '@/constants/typography';
 import { useSettings } from '@/context/settingsContext';
+import { useWeekHistory } from '@/hooks/useWeekHistory';
+import { formatTime } from '@/services/doseSchedule';
+
+const shortDate = (date: Date) => date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+
+const KEY: { status: MedicationStatus; label: string }[] = [
+  { status: 'taken', label: 'Taken' },
+  { status: 'missed', label: 'Missed' },
+  { status: 'skipped', label: 'Skipped' },
+  { status: 'upcoming', label: 'Not logged yet' },
+];
 
 export default function HistoryScreen() {
-  // Grab the automatically resolved colors from your settings context
-  const { colors } = useSettings();
-  const styles = createStyles(colors);
+  const { colors, fontScale, reduceMotion } = useSettings();
+  const [weeksBack, setWeeksBack] = useState(0);
+  const { state, retry } = useWeekHistory(weeksBack);
+  const [selectedKey, setSelectedKey] = useState('');
+
+  // Select the newest day whenever a new week loads.
+  const lastKey = state.status === 'ready' ? state.days[state.days.length - 1].key : '';
+  useEffect(() => {
+    if (lastKey) setSelectedKey(lastKey);
+  }, [lastKey]);
+
+  if (state.status === 'loading') {
+    return (
+      <View style={styles.center} accessible accessibilityLiveRegion="polite">
+        {reduceMotion ? null : <ActivityIndicator size="large" color={colors.primary} />}
+        <BodyText>Loading your history…</BodyText>
+      </View>
+    );
+  }
+
+  if (state.status === 'error') {
+    return (
+      <View style={styles.center}>
+        <Card style={styles.gap}>
+          <BodyText bold color={colors.danger}>
+            Could not load your history
+          </BodyText>
+          <BodyText>Your saved doses are still on this phone. Please try again.</BodyText>
+          <AccessibleButton label="Try again" variant="primary" onPress={retry} />
+        </Card>
+      </View>
+    );
+  }
+
+  const { medications, days, now } = state;
+  const first = days[0].date;
+  const last = days[days.length - 1].date;
+  const allDoses = days.flatMap((day) => day.doses);
+  const due = allDoses.filter((dose) => dose.status !== 'pending' || dose.scheduledAt < now);
+  const taken = due.filter((dose) => dose.status === 'taken').length;
+  const missed = due.filter((dose) => dose.status === 'missed').length;
+  const notLogged = due.filter((dose) => dose.status === 'pending').length;
+  const selected = days.find((day) => day.key === selectedKey) ?? days[days.length - 1];
+  const rangeLabel = weeksBack === 0 ? 'Last 7 days' : `${shortDate(first)} – ${shortDate(last)}`;
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* Page Title - Clean and flat typography matching the home tab */}
-      <View style={styles.headerSection}>
-        <Text style={styles.heading}>Medication history</Text>
-        <Text style={styles.subheading}>
-          Review your past treatment courses and completed plans.
-        </Text>
-      </View>
-
-      {/* Chronological Section Splitter */}
-      <Text style={styles.timelineSectionTitle}>RECENTLY COMPLETED</Text>
-
-      {/* Past Medication Card 1 */}
-      <View style={styles.card}>
-        <View style={styles.cardHeaderRow}>
-          <Text style={styles.medicationName}>Medication A</Text>
-          {/* Visual Anchor: An status badge indicating how the timeline ended */}
-          <View style={styles.statusBadge}>
-            <Text style={styles.statusBadgeText}>COMPLETED</Text>
+    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+      <View style={styles.column}>
+        <ScreenTitle title="History" />
+        <View style={styles.weekRow}>
+          <AccessibleButton
+            label="‹ Earlier"
+            onPress={() => setWeeksBack((weeks) => weeks + 1)}
+            accessibilityLabel="Show the 7 days before these"
+            style={styles.weekButton}
+          />
+          <View style={styles.weekLabel} accessible accessibilityLiveRegion="polite">
+            <Heading level="section" style={styles.centerText}>
+              {rangeLabel}
+            </Heading>
+            {weeksBack === 0 ? (
+              <BodyText size="small" muted style={styles.centerText}>
+                {shortDate(first)} – {shortDate(last)}
+              </BodyText>
+            ) : null}
           </View>
-        </View>
-        
-        <Text style={styles.medDetailText}>500 mg</Text>
-
-        {/* Date Row Layout - Split horizontally to keep text scannable */}
-        <View style={styles.dateRow}>
-          <View style={styles.dateBlock}>
-            <Text style={styles.dateLabel}>STARTED</Text>
-            <Text style={styles.dateValue}>Jan 12, 2026</Text>
-          </View>
-          <View style={styles.dateBlock}>
-            <Text style={styles.dateLabel}>STOPPED</Text>
-            <Text style={styles.dateValue}>Feb 12, 2026</Text>
-          </View>
+          <AccessibleButton
+            label="Later ›"
+            onPress={() => setWeeksBack((weeks) => Math.max(0, weeks - 1))}
+            disabled={weeksBack === 0}
+            accessibilityLabel="Show the next 7 days"
+            style={styles.weekButton}
+          />
         </View>
 
-        {/* Adherence breakdown tracking bar */}
-        <View style={styles.adherenceRow}>
-          <Text style={styles.adherenceLabel}>Adherence Rate:</Text>
-          <Text style={styles.adherenceValue}>94% (58/60 doses)</Text>
-        </View>
-      </View>
+        {medications.length === 0 ? (
+          <Card style={styles.gap}>
+            <Heading level="section">Nothing to show yet</Heading>
+            <BodyText>
+              Add a medicine with a schedule, then log doses from Today. Each day’s checks and crosses will show up here.
+            </BodyText>
+            <AccessibleButton label="Add medicine" icon="＋" variant="primary" onPress={() => router.push('/addMedication')} />
+          </Card>
+        ) : (
+          <>
+            <Card style={styles.summary} accessible>
+              <View style={styles.summaryText}>
+                <BodyText bold>
+                  {due.length === 0 ? 'No doses were due' : `${taken} of ${due.length} doses taken`}
+                </BodyText>
+                {missed || notLogged ? (
+                  <BodyText size="meta" muted>
+                    {[missed ? `${missed} missed` : '', notLogged ? `${notLogged} not logged` : '']
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </BodyText>
+                ) : null}
+              </View>
+              {due.length > 0 ? (
+                <BodyText style={[headingStyle(TypeScale.title, fontScale), { color: colors.primary }]}>
+                  {Math.round((taken / due.length) * 100)}%
+                </BodyText>
+              ) : null}
+            </Card>
 
-      {/* Another Chronological Section Splitter */}
-      <Text style={styles.timelineSectionTitle}>OLDER HISTORIC COURSES</Text>
+            <Card>
+              <WeekGrid
+                medications={medications}
+                days={days}
+                now={now}
+                selectedKey={selected.key}
+                onSelect={setSelectedKey}
+              />
+            </Card>
 
-      {/* Past Medication Card 2 */}
-      <View style={styles.card}>
-        <View style={styles.cardHeaderRow}>
-          <Text style={styles.medicationName}>Medication C</Text>
-          <View style={styles.pausedBadge}>
-            <Text style={styles.pausedBadgeText}>DISCONTINUED</Text>
-          </View>
-        </View>
-        
-        <Text style={styles.medDetailText}>100 mg</Text>
+            <View style={styles.key} accessible accessibilityLabel="Key: check means taken, cross means missed, dash means skipped, dotted ring means not logged yet">
+              {KEY.map((item) => (
+                <View key={item.status} style={styles.keyItem}>
+                  <StatusMark status={item.status} size={20} />
+                  <BodyText size="meta">{item.label}</BodyText>
+                </View>
+              ))}
+            </View>
 
-        <View style={styles.dateRow}>
-          <View style={styles.dateBlock}>
-            <Text style={styles.dateLabel}>STARTED</Text>
-            <Text style={styles.dateValue}>Oct 01, 2025</Text>
-          </View>
-          <View style={styles.dateBlock}>
-            <Text style={styles.dateLabel}>STOPPED</Text>
-            <Text style={styles.dateValue}>Nov 15, 2025</Text>
-          </View>
-        </View>
-
-        <View style={styles.adherenceRow}>
-          <Text style={styles.adherenceLabel}>Adherence Rate:</Text>
-          <Text style={styles.adherenceValue}>82% (82/100 doses)</Text>
-        </View>
+            <View style={styles.gap}>
+              <Heading level="section">
+                {selected.date.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' })}
+              </Heading>
+              {selected.doses.length === 0 ? (
+                <BodyText muted>No doses were scheduled this day.</BodyText>
+              ) : (
+                selected.doses.map((dose) => {
+                  const words = doseStatusWords(dose, now);
+                  return (
+                    <Card
+                      key={dose.key}
+                      style={styles.doseRow}
+                      accessible
+                      accessibilityLabel={`${formatTime(dose.scheduledTime)}, ${dose.medication.name}: ${words}`}>
+                      <BodyText bold style={styles.time}>
+                        {formatTime(dose.scheduledTime)}
+                      </BodyText>
+                      <BodyText style={styles.doseName}>{dose.medication.name}</BodyText>
+                      <View style={styles.doseStatus}>
+                        <StatusMark status={doseMark(dose)} size={20} />
+                        <BodyText size="small" bold>
+                          {words}
+                        </BodyText>
+                      </View>
+                    </Card>
+                  );
+                })
+              )}
+            </View>
+          </>
+        )}
       </View>
     </ScrollView>
   );
 }
 
-// Generates style rules dynamically depending on which color palette object is provided
-const createStyles = (colors: ThemeColors) => StyleSheet.create({
-  container: {
-    backgroundColor: colors.background, 
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 40,
-    gap: 16,
-  },
-  headerSection: {
-    marginBottom: 10,
-  },
-  heading: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: colors.textPrimary,
-    letterSpacing: -0.5,
-  },
-  subheading: {
-    fontSize: 16,
-    color: colors.textPrimary,
-    opacity: 0.8,
-    marginTop: 4,
-  },
-  timelineSectionTitle: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: colors.textPrimary,
-    letterSpacing: 1,
-    opacity: 0.6,
-    marginTop: 10,
-    marginBottom: 2,
-  },
-  card: {
-    backgroundColor: colors.background,
-    borderWidth: 1,
-    borderColor: colors.textPrimary,
-    padding: 20,
-    borderRadius: 16,
-    gap: 12,
-  },
-  cardHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  medicationName: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: colors.textPrimary,
-  },
-  medDetailText: {
-    fontSize: 14,
-    color: colors.textPrimary,
-    opacity: 0.7,
-    marginTop: -8, // Pulls the dosage text slightly closer underneath the medicine name
-  },
-  statusBadge: {
-    backgroundColor: colors.primary, // Uses theme teal fill
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 6,
-  },
-  statusBadgeText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: colors.onPrimary, // High-contrast text on top of the teal background
-  },
-  pausedBadge: {
-    borderWidth: 1,
-    borderColor: colors.danger, // Outline utilizing your semantic danger red/orange color role
-    paddingVertical: 3,
-    paddingHorizontal: 8,
-    borderRadius: 6,
-  },
-  pausedBadgeText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: colors.danger,
-  },
-  dateRow: {
-    flexDirection: 'row',
-    gap: 32,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: colors.textPrimary,
-    paddingVertical: 12,
-    marginTop: 4,
-    opacity: 0.9,
-  },
-  dateBlock: {
-    gap: 2,
-  },
-  dateLabel: {
-    fontSize: 10,
-    fontWeight: '800',
-    color: colors.textPrimary,
-    opacity: 0.5,
-    letterSpacing: 0.5,
-  },
-  dateValue: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.textPrimary,
-  },
-  adherenceRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 2,
-  },
-  adherenceLabel: {
-    fontSize: 13,
-    color: colors.textPrimary,
-    opacity: 0.7,
-  },
-  adherenceValue: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
+const styles = StyleSheet.create({
+  screen: { flex: 1 },
+  content: { padding: 20, paddingBottom: 40 },
+  column: { width: '100%', maxWidth: 640, alignSelf: 'center', gap: 16 },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, padding: 20 },
+  gap: { gap: 10 },
+  weekRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  weekButton: { paddingHorizontal: 12 },
+  weekLabel: { flex: 1 },
+  centerText: { textAlign: 'center' },
+  summary: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' },
+  summaryText: { flexShrink: 1, gap: 2 },
+  key: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 16, rowGap: 6 },
+  keyItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  doseRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, flexWrap: 'wrap' },
+  time: { minWidth: 76 },
+  doseName: { flex: 1, minWidth: 100 },
+  doseStatus: { flexDirection: 'row', alignItems: 'center', gap: 4 },
 });

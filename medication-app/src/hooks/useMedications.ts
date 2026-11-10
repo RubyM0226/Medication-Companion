@@ -4,6 +4,7 @@
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 
+import type { PillForm } from '@/components/ui/pillMark';
 import { localMedications, Medication } from '@/services/medicationStore';
 
 export function useMedications() {
@@ -29,5 +30,12 @@ export function useMedications() {
     setMedications((current) => current.filter((medication) => medication.id !== id));
   };
 
-  return { medications, loaded, remove };
+  const updateAppearance = async (id: string, pillForm: PillForm, pillColor: string) => {
+    await localMedications.updateAppearance(id, pillForm, pillColor);
+    setMedications((current) =>
+      current.map((medication) => (medication.id === id ? { ...medication, pillForm, pillColor } : medication)),
+    );
+  };
+
+  return { medications, loaded, remove, updateAppearance };
 }
