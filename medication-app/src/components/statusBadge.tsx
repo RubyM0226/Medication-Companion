@@ -1,9 +1,10 @@
 // Medication status pill. Always shows a drawn mark and a label so status never
 // depends on color alone; follows the theme and color-blind-friendly setting.
 
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { StatusMark } from '@/components/ui/statusMark';
+import { Text } from '@/components/ui/text';
 import { getStatusDisplay, MedicationStatus } from '@/constants/colors';
 import { Fonts } from '@/constants/typography';
 import { useSettings } from '@/context/settingsContext';

@@ -1,9 +1,10 @@
 // Large search field with separate Clear and Search buttons.
 
 import { forwardRef } from 'react';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, TextInputInstance, View } from 'react-native';
 
 import { AccessibleButton } from '@/components/accessibleButton';
+import { Text, TextInput } from '@/components/ui/text';
 import { useSettings } from '@/context/settingsContext';
 
 type Props = {
@@ -15,7 +16,7 @@ type Props = {
   message?: string;
 };
 
-export const SearchBar = forwardRef<TextInput, Props>(function SearchBar(
+export const SearchBar = forwardRef<TextInputInstance, Props>(function SearchBar(
   { value, onChangeText, onSubmit, onClear, message },
   ref,
 ) {

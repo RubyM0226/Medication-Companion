@@ -1,7 +1,8 @@
 // Small labelled tag. The text carries the meaning; color only reinforces it.
 
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import { useSettings } from '@/context/settingsContext';
 
 export function Chip({ label, tone = 'neutral' }: { label: string; tone?: 'neutral' | 'success' | 'accent' }) {

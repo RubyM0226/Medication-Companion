@@ -1,8 +1,9 @@
 // Labelled text field with an optional help line and error message. The
 // error is shown as text with an icon and a thicker border, not color alone.
 
-import { StyleSheet, Text, TextInput, TextInputProps, View } from 'react-native';
+import { StyleSheet, TextInputProps, View } from 'react-native';
 
+import { Text, TextInput } from '@/components/ui/text';
 import { Fonts } from '@/constants/typography';
 import { useSettings } from '@/context/settingsContext';
 

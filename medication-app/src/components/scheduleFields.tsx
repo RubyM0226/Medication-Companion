@@ -2,11 +2,12 @@
 // 24-hour "HH:MM" and shown in the phone's 12- or 24-hour format.
 
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { AccessibleButton } from '@/components/accessibleButton';
 import { ChoiceChip } from '@/components/choiceChip';
 import { FormField } from '@/components/formField';
+import { Text } from '@/components/ui/text';
 import { useSettings } from '@/context/settingsContext';
 import { formatTime, FrequencyType, parseTime } from '@/services/doseSchedule';
 
@@ -71,7 +72,7 @@ export function ScheduleFields({
 
   return (
     <View>
-      <Text style={[styles.heading, { color: colors.textPrimary, fontSize: 20 * fontScale }]} accessibilityRole="header">
+      <Text style={[styles.heading, { color: colors.textPrimary, fontSize: 22 * fontScale }]} accessibilityRole="header">
         When you take it
       </Text>
 

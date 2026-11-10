@@ -3,10 +3,11 @@
 // made-up explanation.
 
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { AccessibleButton } from '@/components/accessibleButton';
 import { ReadAloudButton } from '@/components/lookup/readAloudButton';
+import { Text } from '@/components/ui/text';
 import { useSettings } from '@/context/settingsContext';
 import { DrugLabel } from '@/services/openFda';
 import { getPlainLanguageService, PlainLanguageExplanation } from '@/services/plainLanguage';

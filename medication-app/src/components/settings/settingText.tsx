@@ -1,7 +1,8 @@
 // Icon, label and optional note used at the start of Settings rows.
 
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import { Fonts } from '@/constants/typography';
 import { useSettings } from '@/context/settingsContext';
 

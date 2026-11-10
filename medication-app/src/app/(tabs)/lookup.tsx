@@ -6,14 +6,14 @@ import {
   Keyboard,
   ScrollView,
   StyleSheet,
-  Text,
-  TextInput,
+  TextInputInstance,
   View,
 } from 'react-native';
 
 import { AccessibleButton } from '@/components/accessibleButton';
 import { DrugResultRow } from '@/components/lookup/drugResultRow';
 import { SearchBar } from '@/components/lookup/searchBar';
+import { Text, TextInput } from '@/components/ui/text';
 import { useSettings } from '@/context/settingsContext';
 import { MIN_QUERY_LENGTH, useDrugSearch } from '@/hooks/useDrugSearch';
 
@@ -21,7 +21,7 @@ export default function LookupScreen() {
   const { colors, fontScale: scale, reduceMotion } = useSettings();
   const [query, setQuery] = useState('');
   const [message, setMessage] = useState<string>();
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<TextInputInstance>(null);
   const { state, recent, search, reset, clearRecent } = useDrugSearch();
 
   // Screen readers do not notice new content below the search bar on their own.
@@ -60,7 +60,7 @@ export default function LookupScreen() {
 
   return (
     <ScrollView
-      style={[styles.screen, { backgroundColor: colors.background }]}
+      style={styles.screen}
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled">
       <View style={styles.column}>

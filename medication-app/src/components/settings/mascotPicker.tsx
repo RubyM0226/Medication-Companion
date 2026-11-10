@@ -1,10 +1,11 @@
 // Choose a dinosaur companion, or none. A radio group: the selected tile gets
 // a thicker border, a check mark and the word "Selected", not just color.
 
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { MascotDisplay } from '@/components/mascotDisplay';
 import { SettingCard } from '@/components/settings/settingCard';
+import { Text } from '@/components/ui/text';
 import { MASCOTS, MascotChoice } from '@/constants/mascots';
 import { useSettings } from '@/context/settingsContext';
 

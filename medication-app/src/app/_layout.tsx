@@ -3,11 +3,13 @@ import {
   AtkinsonHyperlegibleNext_700Bold,
 } from '@expo-google-fonts/atkinson-hyperlegible-next';
 import { Literata_600SemiBold, Literata_700Bold, useFonts } from '@expo-google-fonts/literata';
-import { Stack } from 'expo-router';
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { StyleSheet, View } from 'react-native';
 
+import { SkyBackground, skyTopColor, useTimeOfDay } from '@/components/ui/skyBackground';
 import { Fonts } from '@/constants/typography';
 import { SettingsProvider, useSettings } from '@/context/settingsContext';
 
@@ -39,18 +41,40 @@ export default function RootLayout() {
 }
 
 function RootStack() {
-  const { colors, fontScale, isDark, reduceMotion } = useSettings();
+  const { colors, fontScale, isDark, reduceMotion, toggles } = useSettings();
+  const timeOfDay = useTimeOfDay();
+
+  // One sky behind every screen. Screens keep a transparent background so it
+  // shows through; headers take the sky's top color so there is no seam.
+  // Navigation draws its own gray background behind every screen unless its
+  // theme says otherwise. Transparent here lets the sky show through.
+  const baseTheme = isDark ? DarkTheme : DefaultTheme;
+  const navigationTheme = {
+    ...baseTheme,
+    colors: {
+      ...baseTheme.colors,
+      background: 'transparent',
+      card: colors.surface,
+      text: colors.textPrimary,
+      border: colors.ringTrack,
+      primary: colors.primary,
+    },
+  };
 
   return (
-    <>
+    <ThemeProvider value={navigationTheme}>
+    <View style={[styles.root, { backgroundColor: colors.background }]}>
+      <SkyBackground timeOfDay={timeOfDay} />
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <Stack
         screenOptions={{
-          headerStyle: { backgroundColor: colors.background },
+          headerStyle: {
+            backgroundColor: skyTopColor(timeOfDay, isDark, toggles.highContrast, colors.background),
+          },
           headerTintColor: colors.textPrimary,
           headerTitleStyle: { fontFamily: Fonts.heading, fontSize: 18 * fontScale },
           headerShadowVisible: false,
-          contentStyle: { backgroundColor: colors.background },
+          contentStyle: { backgroundColor: 'transparent' },
           animation: reduceMotion ? 'none' : 'default',
         }}>
         <Stack.Screen name="index" options={{ headerShown: false }} />
@@ -66,6 +90,11 @@ function RootStack() {
           options={{ title: 'Medicine details', headerBackTitle: 'Lookup' }}
         />
       </Stack>
-    </>
+    </View>
+    </ThemeProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  root: { flex: 1 },
+});

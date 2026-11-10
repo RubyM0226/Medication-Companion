@@ -5,7 +5,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   Vibration,
   View,
 } from 'react-native';
@@ -16,8 +15,10 @@ import { MascotPicker } from '@/components/settings/mascotPicker';
 import { SettingCard } from '@/components/settings/settingCard';
 import { SettingText } from '@/components/settings/settingText';
 import { SettingToggleRow } from '@/components/settings/settingToggleRow';
+import { SkyPreviewCard } from '@/components/settings/skyPreviewCard';
 import { ThemePicker } from '@/components/settings/themePicker';
 import { StatusBadge } from '@/components/statusBadge';
+import { Text } from '@/components/ui/text';
 import { MedicationStatus } from '@/constants/colors';
 import { SettingItem, SettingsSections } from '@/content/settingsContent';
 import { useSettings } from '@/context/settingsContext';
@@ -132,7 +133,7 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView
-      style={[styles.screen, { backgroundColor: colors.background }]}
+      style={styles.screen}
       contentContainerStyle={styles.content}>
       <View style={styles.column}>
         <Text style={[styles.title, text, { fontSize: 32 * scale }]} accessibilityRole="header">
@@ -141,6 +142,8 @@ export default function SettingsScreen() {
         <Text style={[{ color: colors.textSecondary, fontSize: 16 * scale }]}>
           Changes save automatically and apply across the app.
         </Text>
+
+        {__DEV__ ? <SkyPreviewCard /> : null}
 
         {SettingsSections.map((section) => (
           <View key={section.title}>

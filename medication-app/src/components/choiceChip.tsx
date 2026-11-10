@@ -2,8 +2,9 @@
 // Selected chips are filled and show a check mark and bold text, so the
 // choice is never shown by color alone.
 
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import { Fonts } from '@/constants/typography';
 import { useSettings } from '@/context/settingsContext';
 

@@ -27,6 +27,20 @@ export const PILL_COLORS: { value: string; label: string }[] = [
   { value: '#2E3D63', label: 'Blue' },
 ];
 
+// Until someone picks how their pill looks (Add medicine), show a plain white
+// round tablet rather than guessing.
+export function pillAppearance(medication: { pillForm?: PillForm | null; pillColor?: string | null }) {
+  return { form: medication.pillForm ?? 'round', color: medication.pillColor ?? '#FFFFFF' };
+}
+
+// "Pink round tablet", "Blue capsule": read out by screen readers and shown
+// under the picker, so the look is described in words too.
+export function describePill(form: PillForm, color: string) {
+  const colorName = PILL_COLORS.find((option) => option.value === color)?.label ?? 'White';
+  const shape = { round: 'round tablet', oval: 'oval tablet', oblong: 'long tablet', capsule: 'capsule', softgel: 'softgel' }[form];
+  return `${colorName} ${shape}`;
+}
+
 const OUTLINE = '#5C3F37';
 const HIGHLIGHT = '#FEF4D9';
 

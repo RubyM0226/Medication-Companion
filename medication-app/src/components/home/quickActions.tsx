@@ -1,10 +1,12 @@
 // Three shortcut cards. Caregiver is shown as unavailable until it exists.
 
 import { router } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { AppIcon, IconName } from '@/components/appIcon';
 import { cardStyle } from '@/components/home/cardStyle';
+import { Text } from '@/components/ui/text';
+import { Fonts } from '@/constants/typography';
 import { useSettings } from '@/context/settingsContext';
 
 function ActionCard({
@@ -44,7 +46,7 @@ function ActionCard({
       <Text style={[styles.label, { color: disabled ? colors.textSecondary : colors.textPrimary, fontSize: 15 * scale }]}>
         {label}
       </Text>
-      {note ? <Text style={{ color: colors.textSecondary, fontSize: 12 * scale, textAlign: 'center' }}>{note}</Text> : null}
+      {note ? <Text style={[styles.note, { color: colors.textSecondary, fontSize: 14 * scale }]}>{note}</Text> : null}
     </Pressable>
   );
 }
@@ -69,5 +71,6 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', gap: 10, flexWrap: 'wrap' },
   card: { flexGrow: 1, flexBasis: 100, alignItems: 'center', justifyContent: 'center', gap: 6, padding: 12 },
   pressed: { opacity: 0.6 },
-  label: { fontWeight: '700', textAlign: 'center' },
+  label: { fontFamily: Fonts.bodyBold, textAlign: 'center' },
+  note: { fontFamily: Fonts.body, textAlign: 'center' },
 });

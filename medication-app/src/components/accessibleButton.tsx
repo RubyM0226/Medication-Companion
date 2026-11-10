@@ -6,8 +6,9 @@
 // danger: outlined rust, for destructive actions. Rust is never a filled main
 // button, because rust means "missed" or "urgent" in this app.
 
-import { Pressable, StyleProp, StyleSheet, Text, ViewStyle } from 'react-native';
+import { Pressable, StyleProp, StyleSheet, ViewStyle } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import { Fonts } from '@/constants/typography';
 import { useSettings } from '@/context/settingsContext';
 

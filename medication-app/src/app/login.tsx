@@ -4,11 +4,10 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
-  TextInput,
   View,
 } from 'react-native';
 
+import { Text, TextInput } from '@/components/ui/text';
 import { ThemeColors } from '@/constants/colors';
 import { useSettings } from '@/context/settingsContext';
 
@@ -119,7 +118,6 @@ export default function SignInScreen() {
 function makeStyles(Colors: ThemeColors) {
   return StyleSheet.create({
   container: {
-    backgroundColor: Colors.background,
     paddingHorizontal: 25,
     paddingTop: 70,
     paddingBottom: 40,

@@ -2,8 +2,9 @@
 // "Warning" tag so they stand out without relying on color.
 
 import { ReactNode, useState } from 'react';
-import { LayoutAnimation, Pressable, StyleSheet, Text, View } from 'react-native';
+import { LayoutAnimation, Pressable, StyleSheet, View } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import { useSettings } from '@/context/settingsContext';
 
 export function ExpandableSection({

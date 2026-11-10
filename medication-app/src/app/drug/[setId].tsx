@@ -1,6 +1,6 @@
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { ReactNode, useEffect, useState } from 'react';
-import { ActivityIndicator, Linking, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Linking, ScrollView, StyleSheet, View } from 'react-native';
 
 import { AccessibleButton } from '@/components/accessibleButton';
 import { ComingSoonCard } from '@/components/comingSoonCard';
@@ -8,6 +8,7 @@ import { Chip } from '@/components/lookup/chip';
 import { ExpandableSection } from '@/components/lookup/expandableSection';
 import { PlainLanguageCard } from '@/components/lookup/plainLanguageCard';
 import { ReadAloudButton } from '@/components/lookup/readAloudButton';
+import { Text } from '@/components/ui/text';
 import { useSettings } from '@/context/settingsContext';
 import { useMedications } from '@/hooks/useMedications';
 import { useReadAloud } from '@/hooks/useReadAloud';
@@ -58,7 +59,7 @@ export default function DrugDetailsScreen() {
 
   return (
     <ScrollView
-      style={[styles.screen, { backgroundColor: colors.background }]}
+      style={styles.screen}
       contentContainerStyle={styles.content}>
       <View style={styles.column}>
         {state.status === 'loading' ? (

@@ -3,8 +3,9 @@
 // it.
 
 import { ReactNode } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import { useSettings } from '@/context/settingsContext';
 
 export function AppModal({

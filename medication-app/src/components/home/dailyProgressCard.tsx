@@ -1,10 +1,12 @@
 // Today's progress from real scheduled doses and logs. The wording only
 // states what the logs show; it never calls the day "on track".
 
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { ProgressRing } from '@/components/home/progressRing';
 import { cardStyle } from '@/components/home/cardStyle';
+import { Text } from '@/components/ui/text';
+import { bodyStyle, headingStyle, TypeScale } from '@/constants/typography';
 import { useSettings } from '@/context/settingsContext';
 import { DaySummary, Dose, formatTime } from '@/services/doseSchedule';
 
@@ -32,10 +34,10 @@ export function DailyProgressCard({ summary, doses }: { summary: DaySummary; dos
       : `Next at ${formatTime(next.scheduledTime)}`
     : undefined;
   const breakdown = [
-    `✓ ${summary.taken} taken`,
-    `⏰ ${summary.pending} pending`,
-    summary.missed ? `⚠ ${summary.missed} missed` : '',
-    summary.skipped ? `— ${summary.skipped} skipped` : '',
+    `${summary.taken} taken`,
+    `${summary.pending} still to take`,
+    summary.missed ? `${summary.missed} missed` : '',
+    summary.skipped ? `${summary.skipped} skipped` : '',
   ].filter(Boolean);
 
   const headline =
@@ -46,7 +48,7 @@ export function DailyProgressCard({ summary, doses }: { summary: DaySummary; dos
     summary.percentTaken !== null ? `${summary.percentTaken} percent.` : '',
     status + '.',
     nextLine ? nextLine + '.' : '',
-    summary.total ? breakdown.map((item) => item.slice(2)).join(', ') + '.' : '',
+    summary.total ? breakdown.join(', ') + '.' : '',
   ].join(' ');
 
   return (
@@ -60,19 +62,19 @@ export function DailyProgressCard({ summary, doses }: { summary: DaySummary; dos
         strokeWidth={12}
         color={colors.primary}
         trackColor={colors.ringTrack}>
-        <Text style={[styles.percent, { color: colors.textPrimary, fontSize: 24 * scale }]}>
+        <Text style={[headingStyle(TypeScale.section, scale), { color: colors.textPrimary }]}>
           {summary.percentTaken === null ? '—' : `${summary.percentTaken}%`}
         </Text>
       </ProgressRing>
 
       <View style={styles.text}>
-        <Text style={[styles.label, { color: colors.textPrimary, fontSize: 13 * scale }]}>TODAY’S PROGRESS</Text>
-        <Text style={[styles.headline, { color: colors.textPrimary, fontSize: 22 * scale }]}>{headline}</Text>
-        <Text style={[styles.status, { color: colors.textPrimary, fontSize: 16 * scale }]}>{status}</Text>
-        {nextLine ? <Text style={{ color: colors.textPrimary, fontSize: 15 * scale }}>{nextLine}</Text> : null}
+        <Text style={[bodyStyle(TypeScale.small, scale, true), { color: colors.textSecondary }]}>Today’s progress</Text>
+        <Text style={[headingStyle(TypeScale.section, scale), { color: colors.textPrimary }]}>{headline}</Text>
+        <Text style={[bodyStyle(TypeScale.meta, scale, true), { color: colors.textPrimary }]}>{status}</Text>
+        {nextLine ? <Text style={[bodyStyle(TypeScale.meta, scale), { color: colors.textPrimary }]}>{nextLine}</Text> : null}
         {summary.total > 0 ? (
-          <Text style={{ color: colors.textPrimary, fontSize: 14 * scale, marginTop: 4 }}>
-            {breakdown.join('   ')}
+          <Text style={[bodyStyle(TypeScale.meta, scale), { color: colors.textSecondary, marginTop: 4 }]}>
+            {breakdown.join(' · ')}
           </Text>
         ) : null}
       </View>
@@ -82,9 +84,5 @@ export function DailyProgressCard({ summary, doses }: { summary: DaySummary; dos
 
 const styles = StyleSheet.create({
   card: { flexDirection: 'row', alignItems: 'center', gap: 18, flexWrap: 'wrap' },
-  percent: { fontWeight: '800' },
   text: { flex: 1, minWidth: 170, gap: 3 },
-  label: { fontWeight: '800', letterSpacing: 1 },
-  headline: { fontWeight: '700' },
-  status: { fontWeight: '600' },
 });

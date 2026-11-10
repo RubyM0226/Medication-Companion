@@ -3,7 +3,8 @@
 // them carries the meaning, so screen readers skip them.
 
 import { SymbolView, SymbolViewProps } from 'expo-symbols';
-import { ColorValue, Text } from 'react-native';
+import { ColorValue } from 'react-native';
+import { Text } from '@/components/ui/text';
 
 type SymbolName = Exclude<SymbolViewProps['name'], string>;
 

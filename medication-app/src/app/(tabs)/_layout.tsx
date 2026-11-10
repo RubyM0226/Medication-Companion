@@ -25,11 +25,12 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerStyle: { backgroundColor: colors.background },
+        headerStyle: { backgroundColor: 'transparent' },
         headerTintColor: colors.textPrimary,
         headerTitleStyle: { fontFamily: Fonts.heading, fontSize: 18 * fontScale },
         headerShadowVisible: false,
-        sceneStyle: { backgroundColor: colors.background },
+        // Transparent so the sky from the root layout shows through.
+        sceneStyle: { backgroundColor: 'transparent' },
         tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.ringTrack, minHeight: 64 },
         tabBarActiveTintColor: colors.textPrimary,
         tabBarInactiveTintColor: colors.textSecondary,

@@ -1,12 +1,14 @@
-// One dose in Today's Schedule: time, medication, dose and status shown with
-// an icon and a word, plus a Log button while it is still pending.
+// One dose in Today's doses: the pill drawing, medicine, time and dose, and the
+// status shown with a drawn mark and a word, plus a Log button while pending.
 
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { AccessibleButton } from '@/components/accessibleButton';
-import { cardStyle } from '@/components/home/cardStyle';
 import { doseAmount, statusLabel } from '@/components/home/format';
-import { StatusBadge } from '@/components/statusBadge';
+import { BodyText } from '@/components/ui/appText';
+import { Card } from '@/components/ui/card';
+import { pillAppearance, PillMark } from '@/components/ui/pillMark';
+import { StatusMark } from '@/components/ui/statusMark';
 import { MedicationStatus } from '@/constants/colors';
 import { useSettings } from '@/context/settingsContext';
 import { Dose, formatTime } from '@/services/doseSchedule';
@@ -19,39 +21,57 @@ export function MedicationScheduleCard({
   dose: Dose<Medication>;
   onLog: (dose: Dose<Medication>) => void;
 }) {
-  const { colors, fontScale: scale, toggles } = useSettings();
-  const badge: MedicationStatus = dose.status === 'pending' ? 'upcoming' : dose.status;
+  const { colors, toggles } = useSettings();
+  const status: MedicationStatus = dose.status === 'pending' ? 'upcoming' : dose.status;
   const label = statusLabel(dose);
+  const pill = pillAppearance(dose.medication);
+  const time = formatTime(dose.scheduledTime);
+  const statusColor =
+    status === 'taken'
+      ? toggles.colorBlindFriendly
+        ? colors.colorBlindBlue
+        : colors.primary
+      : status === 'missed' || dose.isLate
+        ? toggles.colorBlindFriendly
+          ? colors.colorBlindOrange
+          : colors.danger
+        : colors.textSecondary;
 
   return (
-    <View style={[cardStyle(colors, toggles.highContrast), styles.card]}>
+    <Card style={styles.card}>
       <View
-        style={styles.info}
+        style={styles.row}
         accessible
-        accessibilityLabel={`${formatTime(dose.scheduledTime)}, ${dose.medication.name}, ${doseAmount(dose.medication)}. Status: ${label}`}>
-        <Text style={[styles.time, { color: colors.primary, fontSize: 16 * scale }]}>{formatTime(dose.scheduledTime)}</Text>
+        accessibilityLabel={`${time}, ${dose.medication.name}, ${doseAmount(dose.medication)}. Status: ${label}`}>
+        <PillMark form={pill.form} color={pill.color} size={40} />
         <View style={styles.text}>
-          <Text style={[styles.name, { color: colors.textPrimary, fontSize: 18 * scale }]}>{dose.medication.name}</Text>
-          <Text style={{ color: colors.textSecondary, fontSize: 15 * scale }}>{doseAmount(dose.medication)}</Text>
+          <BodyText bold>{dose.medication.name}</BodyText>
+          <BodyText size="meta" muted>
+            {time} · {doseAmount(dose.medication)}
+          </BodyText>
         </View>
-        <StatusBadge status={badge} label={label} />
+        <View style={styles.status}>
+          <StatusMark status={status} size={22} />
+          <BodyText size="small" bold color={statusColor}>
+            {label}
+          </BodyText>
+        </View>
       </View>
       {dose.status === 'pending' ? (
         <AccessibleButton
           label="Log"
           icon="✓"
           onPress={() => onLog(dose)}
-          accessibilityLabel={`Log ${dose.medication.name} for ${formatTime(dose.scheduledTime)}`}
+          accessibilityLabel={`Log ${dose.medication.name} for ${time}`}
         />
       ) : null}
-    </View>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
-  card: { gap: 10, padding: 14 },
-  info: { flexDirection: 'row', alignItems: 'center', gap: 12, flexWrap: 'wrap' },
-  time: { fontWeight: '800', minWidth: 72 },
+  card: { gap: 10, padding: 12 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: 12, flexWrap: 'wrap' },
   text: { flex: 1, minWidth: 120 },
-  name: { fontWeight: '700' },
+  status: { flexDirection: 'row', alignItems: 'center', gap: 4 },
 });

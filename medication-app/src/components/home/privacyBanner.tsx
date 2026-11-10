@@ -3,11 +3,13 @@
 // not promise anything the app does not do.
 
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { AccessibleButton } from '@/components/accessibleButton';
 import { AppIcon } from '@/components/appIcon';
 import { AppModal } from '@/components/appModal';
+import { Text } from '@/components/ui/text';
+import { Fonts } from '@/constants/typography';
 import { useSettings } from '@/context/settingsContext';
 
 const DETAILS = [
@@ -21,19 +23,27 @@ const DETAILS = [
 ];
 
 export function PrivacyBanner() {
-  const { colors, fontScale: scale } = useSettings();
+  const { colors, fontScale: scale, toggles } = useSettings();
   const [open, setOpen] = useState(false);
-  const text = { color: colors.textPrimary, fontSize: 16 * scale, lineHeight: 24 * scale };
+  const text = { color: colors.textPrimary, fontFamily: Fonts.body, fontSize: 16 * scale, lineHeight: 24 * scale };
 
   return (
-    <View style={[styles.banner, { backgroundColor: colors.sage, borderColor: colors.textPrimary }]}>
+    <View
+      style={[
+        styles.banner,
+        {
+          backgroundColor: colors.sage,
+          borderColor: toggles.highContrast ? colors.textPrimary : colors.ringTrack,
+          borderWidth: toggles.highContrast ? 2 : 1,
+        },
+      ]}>
       <View style={styles.row}>
         <AppIcon name="lock" size={24} color={colors.textPrimary} />
         <View style={styles.text}>
           <Text style={[styles.title, { color: colors.textPrimary, fontSize: 17 * scale }]}>
             Your activity is private
           </Text>
-          <Text style={{ color: colors.textPrimary, fontSize: 14 * scale }}>Saved only on this phone</Text>
+          <Text style={{ color: colors.textSecondary, fontFamily: Fonts.body, fontSize: 15 * scale }}>Saved only on this phone</Text>
         </View>
         <AccessibleButton
           label="Details"
@@ -56,8 +66,8 @@ export function PrivacyBanner() {
 }
 
 const styles = StyleSheet.create({
-  banner: { borderRadius: 18, borderWidth: 1, padding: 14 },
+  banner: { borderRadius: 22, padding: 14 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, flexWrap: 'wrap' },
   text: { flex: 1, minWidth: 150 },
-  title: { fontWeight: '700' },
+  title: { fontFamily: Fonts.bodyBold },
 });

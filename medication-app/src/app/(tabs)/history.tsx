@@ -1,11 +1,11 @@
 import React, { useMemo } from 'react';
-import { 
+import {
   ScrollView,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import { ThemeColors } from '@/constants/colors';
 import { useSettings } from '@/context/settingsContext';
 export default function HistoryScreen() {
@@ -93,7 +93,6 @@ export default function HistoryScreen() {
 function makeStyles(Colors: ThemeColors) {
   return StyleSheet.create({
   container: {
-    backgroundColor: Colors.background, 
     paddingHorizontal: 20,
     paddingTop: 60,
     paddingBottom: 40,
@@ -124,9 +123,9 @@ function makeStyles(Colors: ThemeColors) {
     marginBottom: 2,
   },
   card: {
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: Colors.textPrimary,
+    borderColor: Colors.ringTrack,
     padding: 20,
     borderRadius: 16,
     gap: 12,
