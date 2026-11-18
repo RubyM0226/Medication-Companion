@@ -3,9 +3,16 @@ from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 from supabase import create_client, Client
 from datetime import timedelta
+import re
+import string
+
+from supabase_auth.errors import AuthApiError
+
 load_dotenv()
+
 app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET_KEY')
+
 if not app.secret_key:
     raise ValueError("missing flask environment variable")
 
@@ -18,7 +25,8 @@ app.config.update(
     ),
     PERMANENT_SESSION_LIFETIME=timedelta(hours=12),
 )
-# importing the medication route blueprints 
+
+# importing the medication route blueprints
 from backend.routes.medication_routes import medication_bp
 from backend.routes.logs_routes import log_bp
 from backend.routes.schedules_routes import schedule_bp
@@ -36,9 +44,12 @@ allowed_origins = {
     ).split(",")
     if origin.strip()
 }
+
+
 @app.before_request
 def check_origin():
     origin = request.headers.get("Origin")
+
     if (
         origin
         and origin not in allowed_origins
@@ -76,21 +87,121 @@ def read_credentials():
     data = request.get_json(silent=True)
 
     if not isinstance(data, dict):
-        return None
+        return None, "Send your email and password as JSON."
 
     email = data.get("email")
     password = data.get("password")
 
-    if not isinstance(email, str) or not isinstance(password, str):
-        return None
+    if not isinstance(email, str) or not email.strip():
+        return None, "Enter your email address."
 
-    if not email.strip() or not password:
-        return None
+    email = email.strip()
+
+    # Basic format check; Supabase also validates the email.
+    if not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", email):
+        return None, "Enter a valid email address."
+
+    if not isinstance(password, str) or not password:
+        return None, "Enter your password."
 
     return {
-        "email": email.strip(),
+        "email": email,
         "password": password,
+    }, None
+
+
+def password_errors(password):
+    errors = []
+
+    if len(password) < 8:
+        errors.append("Password must be at least 8 characters long.")
+
+    if not re.search(r"[A-Z]", password):
+        errors.append(
+            "Password must include at least one capital letter."
+        )
+
+    if not any(character in string.punctuation for character in password):
+        errors.append(
+            "Password must include at least one special character, "
+            "such as !, @, #, or $."
+        )
+
+    return errors
+
+
+def auth_error_response(error):
+    code = getattr(error, "code", None)
+
+    messages = {
+        "email_exists": (
+            "This email is already registered. Please sign in.",
+            409,
+        ),
+        "user_already_exists": (
+            "This email is already registered. Please sign in.",
+            409,
+        ),
+        "invalid_credentials": (
+            "Incorrect email or password.",
+            401,
+        ),
+        "email_not_confirmed": (
+            "Confirm your email before signing in. Check your inbox.",
+            403,
+        ),
+        "email_address_invalid": (
+            "This email address is not accepted. Use a valid email address.",
+            400,
+        ),
+        "email_address_not_authorized": (
+            "Email delivery is not enabled for this address. "
+            "Contact the app team.",
+            403,
+        ),
+        "over_email_send_rate_limit": (
+            "The email sending limit has been reached. "
+            "Please wait before requesting another email.",
+            429,
+        ),
+        "over_request_rate_limit": (
+            "Too many attempts. Please wait a few minutes and try again.",
+            429,
+        ),
+        "weak_password": (
+            "This password does not meet the server's security requirements. "
+            "Choose a stronger password.",
+            400,
+        ),
+        "signup_disabled": (
+            "New account registration is currently disabled.",
+            403,
+        ),
+        "email_provider_disabled": (
+            "Email and password authentication is currently disabled.",
+            403,
+        ),
+        "user_banned": (
+            "This account is currently disabled. Contact the app team.",
+            403,
+        ),
+        "request_timeout": (
+            "The authentication service took too long to respond. "
+            "Please try again.",
+            503,
+        ),
     }
+
+    if code in messages:
+        message, status = messages[code]
+        return jsonify(error=message, code=code), status
+
+    app.logger.exception("Unhandled Supabase authentication error")
+
+    return jsonify(
+        error="Authentication is temporarily unavailable. "
+              "Please try again later."
+    ), 503
 
 
 def start_session(user):
@@ -103,39 +214,136 @@ def start_session(user):
         "id": session["user"],
         "email": session["email"],
     }
+
+
 @app.route('/register', methods=['POST'])
 def register():
-        credentials = read_credentials()
-        if credentials is None:
-            return jsonify(error="Invalid credentials."), 400
-        try:
-            result = get_auth_client().auth.sign_up(credentials)
-        except Exception:
-            app.logger.exception("Registration failed.")
-            return jsonify(error="Registration failed."), 400
-        if result.user and result.session:
-            return jsonify(user=start_session(result.user), requiresConfirmation=False),201
-        return jsonify(user = None, requiresConfirmation=True, message = "Check the confirmation sent to your email to confirm your account"), 201
+    credentials, error = read_credentials()
+
+    if error:
+        return jsonify(error=error), 400
+
+    errors = password_errors(credentials["password"])
+
+    if errors:
+        return jsonify(
+            error="\n".join(errors),
+            errors=errors,
+        ), 400
+
+    redirect_url = os.environ.get("AUTH_REDIRECT_URL")
+
+    if not redirect_url:
+        app.logger.error("AUTH_REDIRECT_URL is not configured")
+        return jsonify(
+            error="Registration is temporarily unavailable."
+        ), 500
+
+    try:
+        result = get_auth_client().auth.sign_up({
+            **credentials,
+            "options": {
+                "email_redirect_to": redirect_url,
+            },
+        })
+    except AuthApiError as error:
+        return auth_error_response(error)
+    except Exception:
+        app.logger.exception("Unexpected registration failure")
+        return jsonify(
+            error="Registration is temporarily unavailable. "
+                  "Please try again later."
+        ), 503
+
+    if result.user and result.session:
+        return jsonify(
+            user=start_session(result.user),
+            requiresConfirmation=False,
+        ), 201
+
+    # Supabase may hide whether an account already exists.
+    # This response does not guarantee a new account or email was created.
+    return jsonify(
+        user=None,
+        requiresConfirmation=True,
+        message=(
+            "Check your inbox for a confirmation email. "
+            "If you already have a confirmed account, sign in instead."
+        ),
+    ), 200
+
+
 @app.route('/login', methods=['POST'])
 def login():
-    credentials = read_credentials()
-    if credentials is None:
-        return jsonify(error="Invalid credentials."), 400
+    credentials, error = read_credentials()
+
+    if error:
+        return jsonify(error=error), 400
+
+    # New signup password rules must not block existing users' passwords.
     try:
         result = get_auth_client().auth.sign_in_with_password(credentials)
+    except AuthApiError as error:
+        return auth_error_response(error)
     except Exception:
-        return jsonify(error="Login failed."), 400
+        app.logger.exception("Unexpected login failure")
+        return jsonify(
+            error="Login is temporarily unavailable. Please try again later."
+        ), 503
+
     if result.user and result.session:
         return jsonify(user=start_session(result.user)), 200
-    return jsonify(error="Login failed. Wrong email or password."), 401
+
+    return jsonify(error="Incorrect email or password."), 401
+
+
 @app.route('/session', methods=['GET'])
 def current_session():
     if "user" not in session:
-        return jsonify(error = "Unauthorized"), 401
-    return jsonify(user = {"id": session["user"], "email": session.get("email")}), 200
+        return jsonify(error="Unauthorized"), 401
+
+    return jsonify(
+        user={
+            "id": session["user"],
+            "email": session.get("email"),
+        }
+    ), 200
+
+
 @app.route('/logout', methods=['POST'])
 def logout():
     session.clear()
-    return jsonify(user =None), 200
+    return jsonify(user=None), 200
+
+
+@app.route('/auth/confirmed', methods=['GET'])
+def confirmation_page():
+    return render_template('confirmed.html')
+
+
+@app.route('/auth/confirmation-status', methods=['POST'])
+def confirmation_status():
+    data = request.get_json(silent=True)
+
+    if not isinstance(data, dict):
+        return jsonify(confirmed=False), 400
+
+    token = data.get("access_token")
+
+    if not isinstance(token, str) or not token:
+        return jsonify(confirmed=False), 400
+
+    try:
+        result = get_auth_client().auth.get_user(token)
+    except Exception:
+        return jsonify(confirmed=False), 401
+
+    confirmed = bool(
+        result.user and result.user.email_confirmed_at
+    )
+
+    return jsonify(confirmed=confirmed), 200
+
+
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000)

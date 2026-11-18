@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Email confirmation | Medication Companion</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: #f5f7f3;
+      color: #243c32;
+      font-family: system-ui, sans-serif;
+    }
+
+    main {
+      width: 100%;
+      max-width: 420px;
+      padding: 40px 28px;
+      border-radius: 24px;
+      background: white;
+      text-align: center;
+      box-shadow: 0 12px 40px #243c3210;
+    }
+
+    .icon {
+      display: grid;
+      place-items: center;
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 24px;
+      border-radius: 50%;
+      background: #e8eee9;
+      font-size: 44px;
+    }
+
+    .success {
+      background: #ddf3e4;
+      color: #207443;
+    }
+
+    h1 {
+      font-size: 26px;
+    }
+
+    p {
+      color: #58655e;
+      line-height: 1.6;
+    }
+
+    .brand {
+      margin-top: 28px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+
+<body>
+  <main aria-live="polite">
+    <div class="icon" id="icon" aria-hidden="true">…</div>
+    <h1 id="title">Checking confirmation…</h1>
+    <p id="message">Please wait a moment.</p>
+    <p class="brand">Medication Companion</p>
+    <noscript>Enable JavaScript to check your confirmation status.</noscript>
+  </main>
+
+  <script>
+    const icon = document.getElementById('icon');
+    const title = document.getElementById('title');
+    const message = document.getElementById('message');
+
+    function showMessage(heading, description) {
+      icon.textContent = '!';
+      title.textContent = heading;
+      message.textContent = description;
+    }
+
+    async function checkConfirmation() {
+      const fragment = new URLSearchParams(window.location.hash.slice(1));
+      const query = new URLSearchParams(window.location.search);
+      const token = fragment.get('access_token');
+
+      const hasError =
+        fragment.has('error') ||
+        fragment.has('error_code') ||
+        query.has('error') ||
+        query.has('error_code');
+
+      // Remove tokens from the address bar; don't store them.
+      history.replaceState(null, '', window.location.pathname);
+
+      if (hasError) {
+        showMessage(
+          'This link could not be verified',
+          'It may have expired or already been used. If you already confirmed your email, return to the app and sign in.'
+        );
+        return;
+      }
+
+      if (!token) {
+        showMessage(
+          'Open your confirmation email',
+          'Use the link in your email to check your verification. If you already confirmed, return to the app and sign in.'
+        );
+        return;
+      }
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
+
+      try {
+        const response = await fetch('/auth/confirmation-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ access_token: token }),
+          signal: controller.signal,
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.confirmed) {
+          showMessage(
+            'Unable to verify this link',
+            'Your email may already be confirmed. Return to the app and try signing in.'
+          );
+          return;
+        }
+
+        icon.textContent = '✓';
+        icon.classList.add('success');
+        title.textContent = 'Email verified!';
+        message.textContent =
+          'You’re ready to go. Return to Medication Companion in Expo Go and sign in.';
+      } catch {
+        showMessage(
+          'Could not check confirmation',
+          'Your email may still have been confirmed. Return to the app and try signing in.'
+        );
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+
+    checkConfirmation();
+  </script>
+</body>
+</html>
