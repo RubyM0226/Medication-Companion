@@ -15,7 +15,6 @@ export function ReadAloudButton({
   return (
     <AccessibleButton
       label={speaking ? 'Stop reading' : 'Read aloud'}
-      icon={speaking ? '■' : '🔊'}
       onPress={onPress}
       accessibilityLabel={speaking ? `Stop reading ${subject}` : `Read ${subject} aloud`}
       style={{ alignSelf: 'flex-start' }}

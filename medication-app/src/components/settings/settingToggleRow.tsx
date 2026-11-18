@@ -1,10 +1,12 @@
 // A whole-row switch: tapping anywhere on the card toggles it, and screen
 // readers hear one element with its label, hint and on/off state.
 
-import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Switch, View } from 'react-native';
 
 import { SettingCard } from '@/components/settings/settingCard';
 import { SettingText } from '@/components/settings/settingText';
+import { Text } from '@/components/ui/text';
+import { Fonts } from '@/constants/typography';
 import { ToggleSetting } from '@/content/settingsContent';
 import { useSettings } from '@/context/settingsContext';
 
@@ -40,9 +42,9 @@ export function SettingToggleRow({
             <Switch
               value={on}
               onValueChange={change}
-              trackColor={{ false: colors.textSecondary, true: colors.primary }}
-              thumbColor={on ? colors.onPrimary : colors.background}
-              ios_backgroundColor={colors.textSecondary}
+              trackColor={{ false: colors.line, true: colors.primary }}
+              thumbColor={on ? colors.onPrimary : colors.surface}
+              ios_backgroundColor={colors.line}
               style={{ transform: [{ scale: touchTarget > 48 ? 1.4 : 1.2 }] }}
             />
             {/* Spelled out so the state is not shown by color and position alone. */}
@@ -60,5 +62,5 @@ const styles = StyleSheet.create({
   card: { flexDirection: 'row', alignItems: 'center' },
   pressed: { opacity: 0.6 },
   control: { alignItems: 'center', justifyContent: 'center' },
-  state: { fontWeight: '700', marginTop: 6 },
+  state: { fontFamily: Fonts.bodyBold, marginTop: 6 },
 });

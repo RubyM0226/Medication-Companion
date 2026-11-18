@@ -1,11 +1,15 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { AccessibilityInfo, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { AccessibilityInfo, ScrollView, StyleSheet, View } from 'react-native';
 
 import { AccessibleButton } from '@/components/accessibleButton';
 import { ChoiceChip } from '@/components/choiceChip';
 import { FormField } from '@/components/formField';
+import { DEFAULT_PILL_LOOK, PillLook, PillPicker } from '@/components/pillPicker';
 import { ScheduleDraft, ScheduleFields } from '@/components/scheduleFields';
+import { BodyText, Heading } from '@/components/ui/appText';
+import { SkyBackground } from '@/components/ui/skyBackground';
+import { Text } from '@/components/ui/text';
 import { useSettings } from '@/context/settingsContext';
 import { dateKey } from '@/services/doseSchedule';
 import { localMedications } from '@/services/medicationStore';
@@ -50,6 +54,7 @@ export default function AddMedicationScreen() {
     daysOfWeek: [],
     reminderTimes: [],
   });
+  const [pillLook, setPillLook] = useState<PillLook>(DEFAULT_PILL_LOOK);
   const [errors, setErrors] = useState<Errors>({});
   const [saving, setSaving] = useState(false);
 
@@ -108,6 +113,8 @@ export default function AddMedicationScreen() {
           .filter(Boolean),
         genericName: label?.genericName,
         fdaSetId: label?.setId,
+        pillForm: pillLook.form,
+        pillColor: pillLook.color,
         schedule: {
           frequencyType: schedule.frequencyType,
           daysOfWeek: schedule.frequencyType === 'specific_days' ? schedule.daysOfWeek : [],
@@ -127,14 +134,17 @@ export default function AddMedicationScreen() {
   const muted = { color: colors.textSecondary, fontSize: 14 * scale, lineHeight: 20 * scale };
 
   return (
+    // Opens as a modal sheet, which does not show the app-wide sky, so it draws its own.
+    <View style={[styles.screen, { backgroundColor: colors.background }]}>
+      <SkyBackground />
     <ScrollView
-      style={[styles.screen, { backgroundColor: colors.background }]}
+      style={styles.screen}
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled"
       automaticallyAdjustKeyboardInsets>
       <View style={styles.column}>
         {label ? (
-          <View style={[styles.notice, { borderColor: colors.primary }]}>
+          <View style={[styles.notice, { borderColor: colors.line, backgroundColor: colors.accentSoft }]}>
             <Text style={text}>
               Filled in from the FDA label for <Text style={styles.bold}>{label.displayName}</Text>.
               Check each field and enter the dose your doctor or pharmacist gave you.
@@ -175,6 +185,15 @@ export default function AddMedicationScreen() {
           {errors.unit ? (
             <Text style={[styles.error, { color: colors.danger, fontSize: 14 * scale }]}>⚠ {errors.unit}</Text>
           ) : null}
+        </View>
+
+        <View style={[styles.section, styles.lookSection]}>
+          <Heading level="section">How it looks</Heading>
+          <BodyText size="meta" muted>
+            Optional. A small drawing of your pill appears next to its name, to help you match it to what is in your
+            hand.
+          </BodyText>
+          <PillPicker value={pillLook} onChange={setPillLook} />
         </View>
 
         <View style={styles.section}>
@@ -226,6 +245,7 @@ export default function AddMedicationScreen() {
         <Text style={[muted, styles.footer]}>Saved on this phone only until accounts are connected.</Text>
       </View>
     </ScrollView>
+    </View>
   );
 }
 
@@ -239,6 +259,7 @@ const styles = StyleSheet.create({
   fieldLabel: { fontWeight: '700', marginBottom: 8 },
   units: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   section: { marginBottom: 24 },
+  lookSection: { gap: 6 },
   error: { marginTop: 6, fontWeight: '700' },
   cancel: { marginTop: 10 },
   footer: { marginTop: 16, textAlign: 'center' },

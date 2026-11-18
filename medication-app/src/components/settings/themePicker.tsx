@@ -1,10 +1,11 @@
 // Light / dark / system choice shown as a radio group. The selected option
 // gets a check mark and bold text as well as a fill, so it is not color-only.
 
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { SettingCard } from '@/components/settings/settingCard';
 import { SettingText } from '@/components/settings/settingText';
+import { Text } from '@/components/ui/text';
 import { THEME_OPTIONS } from '@/content/settingsContent';
 import { useSettings } from '@/context/settingsContext';
 
@@ -14,7 +15,7 @@ export function ThemePicker() {
   return (
     <SettingCard>
       <SettingText
-        icon="☀"
+        icon="theme"
         label="Theme"
         note="System matches your phone’s light or dark mode."
       />

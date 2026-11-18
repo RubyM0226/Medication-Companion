@@ -1,8 +1,11 @@
 // Selectable chip for radio groups (pick one) and checkbox groups (pick any).
-// Selected chips are filled and show a check mark and bold text.
+// Selected chips are filled and show a check mark and bold text, so the
+// choice is never shown by color alone.
 
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 
+import { Text } from '@/components/ui/text';
+import { Fonts } from '@/constants/typography';
 import { useSettings } from '@/context/settingsContext';
 
 export function ChoiceChip({
@@ -31,8 +34,8 @@ export function ChoiceChip({
         {
           minHeight: touchTarget,
           minWidth: touchTarget + 16,
-          borderColor: selected ? colors.primary : colors.textPrimary,
-          backgroundColor: selected ? colors.primary : 'transparent',
+          borderColor: selected ? colors.primary : colors.line,
+          backgroundColor: selected ? colors.primary : colors.surface,
         },
         pressed && styles.pressed,
       ]}>
@@ -40,7 +43,7 @@ export function ChoiceChip({
         style={{
           color: selected ? colors.onPrimary : colors.textPrimary,
           fontSize: 16 * fontScale,
-          fontWeight: selected ? '700' : '500',
+          fontFamily: selected ? Fonts.bodyBold : Fonts.body,
         }}>
         {selected ? '✓ ' : ''}
         {label}
@@ -51,11 +54,11 @@ export function ChoiceChip({
 
 const styles = StyleSheet.create({
   chip: {
-    borderWidth: 1.5,
-    borderRadius: 10,
-    paddingHorizontal: 12,
+    borderWidth: 2,
+    borderRadius: 999,
+    paddingHorizontal: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  pressed: { opacity: 0.6 },
+  pressed: { opacity: 0.7 },
 });

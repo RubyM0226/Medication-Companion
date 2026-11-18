@@ -3,11 +3,12 @@
 // cannot log twice. The database also rejects a second log of the same dose.
 
 import { useState } from 'react';
-import { AccessibilityInfo, StyleSheet, Text, View } from 'react-native';
+import { AccessibilityInfo, StyleSheet, View } from 'react-native';
 
 import { AccessibleButton } from '@/components/accessibleButton';
 import { AppModal } from '@/components/appModal';
 import { doseAmount } from '@/components/home/format';
+import { Text } from '@/components/ui/text';
 import { useSettings } from '@/context/settingsContext';
 import { logDose } from '@/services/doseLogStore';
 import { Dose, DoseStatus, formatTime } from '@/services/doseSchedule';
@@ -80,7 +81,7 @@ export function DoseConfirmationModal({ dose, onClose }: { dose: Dose<Medication
           />
           <View style={styles.row}>
             <AccessibleButton label="I skipped it" icon="—" onPress={() => save('skipped')} disabled={saving} style={styles.half} />
-            <AccessibleButton label="I missed it" icon="⚠" onPress={() => save('missed')} disabled={saving} style={styles.half} />
+            <AccessibleButton label="I missed it" icon="✕" onPress={() => save('missed')} disabled={saving} style={styles.half} />
           </View>
           <AccessibleButton label="Cancel" onPress={close} disabled={saving} />
         </>

@@ -22,7 +22,7 @@ export function timeFromNow(target: Date, now: Date) {
 }
 
 export function statusLabel(dose: Dose) {
-  if (dose.status === 'pending') return dose.isLate ? 'Pending · late' : 'Pending';
+  if (dose.status === 'pending') return dose.isLate ? 'Late' : 'Later';
   return { taken: 'Taken', missed: 'Missed', skipped: 'Skipped' }[dose.status];
 }
 

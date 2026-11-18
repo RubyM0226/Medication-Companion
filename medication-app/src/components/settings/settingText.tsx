@@ -1,7 +1,10 @@
 // Icon, label and optional note used at the start of Settings rows.
 
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
+import { AppIcon, IconName } from '@/components/appIcon';
+import { Text } from '@/components/ui/text';
+import { Fonts } from '@/constants/typography';
 import { useSettings } from '@/context/settingsContext';
 
 export function SettingText({
@@ -10,7 +13,7 @@ export function SettingText({
   note,
   muted,
 }: {
-  icon: string;
+  icon: IconName;
   label: string;
   note?: string;
   muted?: boolean;
@@ -20,12 +23,9 @@ export function SettingText({
 
   return (
     <View style={styles.row}>
-      <Text
-        style={[styles.icon, { color: labelColor, fontSize: 24 * fontScale }]}
-        importantForAccessibility="no"
-        accessibilityElementsHidden>
-        {icon}
-      </Text>
+      <View style={styles.icon}>
+        <AppIcon name={icon} size={24 * Math.min(fontScale, 1.3)} color={labelColor} />
+      </View>
       <View style={styles.textColumn}>
         <Text style={[styles.label, { color: labelColor, fontSize: 18 * fontScale }]}>{label}</Text>
         {note ? (
@@ -40,8 +40,8 @@ export function SettingText({
 
 const styles = StyleSheet.create({
   row: { flex: 1, flexDirection: 'row', alignItems: 'center', marginRight: 12 },
-  icon: { width: 40 },
+  icon: { width: 40, alignItems: 'flex-start' },
   textColumn: { flex: 1 },
-  label: { fontWeight: '600' },
-  note: { marginTop: 4 },
+  label: { fontFamily: Fonts.bodyBold },
+  note: { fontFamily: Fonts.body, marginTop: 4 },
 });

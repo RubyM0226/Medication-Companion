@@ -1,9 +1,10 @@
 // One product in the search results. Rows with the same name are told apart
 // by generic name, maker and route.
 
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Chip } from '@/components/lookup/chip';
+import { Text } from '@/components/ui/text';
 import { useSettings } from '@/context/settingsContext';
 import { DrugLabelSummary } from '@/services/openFda';
 

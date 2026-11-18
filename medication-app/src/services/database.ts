@@ -70,6 +70,12 @@ const MIGRATIONS = [
   );
   CREATE INDEX dose_logs_by_date ON dose_logs (scheduled_date);
   `,
+  // 2: how each pill looks (shape and color), for the pill drawing. Both are
+  // optional; medicines saved before this show a plain white round tablet.
+  `
+  ALTER TABLE medications ADD COLUMN pill_form TEXT;
+  ALTER TABLE medications ADD COLUMN pill_color TEXT;
+  `,
 ];
 
 async function migrate(db: SQLite.SQLiteDatabase) {

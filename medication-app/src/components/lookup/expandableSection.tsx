@@ -2,8 +2,9 @@
 // "Warning" tag so they stand out without relying on color.
 
 import { ReactNode, useState } from 'react';
-import { LayoutAnimation, Pressable, StyleSheet, Text, View } from 'react-native';
+import { LayoutAnimation, Pressable, StyleSheet, View } from 'react-native';
 
+import { Text } from '@/components/ui/text';
 import { useSettings } from '@/context/settingsContext';
 
 export function ExpandableSection({
@@ -37,7 +38,7 @@ export function ExpandableSection({
         style={({ pressed }) => [styles.header, { minHeight: touchTarget + 8 }, pressed && styles.pressed]}>
         <View style={styles.titleColumn}>
           {warning ? (
-            <Text style={[styles.tag, { color: colors.danger, fontSize: 13 * fontScale }]}>⚠ WARNING</Text>
+            <Text style={[styles.tag, { color: colors.danger, fontSize: 13 * fontScale }]}>Warning</Text>
           ) : null}
           <Text style={[styles.title, { color: colors.textPrimary, fontSize: 18 * fontScale }]}>{title}</Text>
         </View>
@@ -55,7 +56,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10 },
   pressed: { opacity: 0.6 },
   titleColumn: { flex: 1, marginRight: 12 },
-  tag: { fontWeight: '800', letterSpacing: 0.5 },
+  tag: { fontWeight: '800' },
   title: { fontWeight: '700' },
   toggle: { fontWeight: '700' },
   body: { paddingHorizontal: 16, paddingBottom: 16, gap: 12 },

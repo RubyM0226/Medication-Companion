@@ -1,9 +1,10 @@
 // Text size stepper. Screen readers treat the steps as one adjustable control
 // (swipe up/down on iOS, volume keys on Android).
 
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { SettingCard } from '@/components/settings/settingCard';
+import { Text } from '@/components/ui/text';
 import { DEFAULT_FONT_SCALE_INDEX, FONT_SCALES } from '@/content/settingsContent';
 import { useSettings } from '@/context/settingsContext';
 

@@ -1,16 +1,28 @@
-// The next dose still to log. Keeps the "NEXT • time" and "IN 42 MIN"
-// badges from YHM882's original Home design.
+// The next dose still to log, drawn as a ticket: the time on a gold stub with a
+// dashed tear line, the pill and medicine on the right, then the actions.
+// Logging still goes through the confirmation step before anything is saved.
 
 import { router } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 import { AccessibleButton } from '@/components/accessibleButton';
-import { AppIcon } from '@/components/appIcon';
-import { cardStyle } from '@/components/home/cardStyle';
 import { doseAmount, timeFromNow } from '@/components/home/format';
+import { BodyText, Heading } from '@/components/ui/appText';
+import { Card } from '@/components/ui/card';
+import { pillAppearance, PillMark } from '@/components/ui/pillMark';
+import { StatusMark } from '@/components/ui/statusMark';
+import { headingStyle, TypeScale } from '@/constants/typography';
 import { useSettings } from '@/context/settingsContext';
 import { Dose, formatTime } from '@/services/doseSchedule';
 import { Medication } from '@/services/medicationStore';
+
+const TEAR_DASHES = Array.from({ length: 12 }, (_, index) => index);
+
+// "6:00 PM" -> ["6:00", "PM"], so the stub can stack the time over AM/PM.
+function splitTime(time: string) {
+  const match = time.match(/^(.*?)\s*([AaPp]\.?\s?[Mm]\.?)$/);
+  return match ? [match[1], match[2].toUpperCase()] : [time, ''];
+}
 
 export function UpcomingDoseCard({
   dose,
@@ -27,102 +39,132 @@ export function UpcomingDoseCard({
   onLog: (dose: Dose<Medication>) => void;
   onRemind: () => void;
 }) {
-  const { colors, fontScale: scale, toggles } = useSettings();
-  const card = cardStyle(colors, toggles.highContrast);
-  const text = { color: colors.textPrimary, fontSize: 16 * scale, lineHeight: 23 * scale };
+  const { colors, fontScale, toggles } = useSettings();
 
   if (!dose) {
     return (
-      <View style={[card, styles.gap]}>
-        <Text style={[styles.label, { color: colors.textPrimary, fontSize: 13 * scale }]}>UP NEXT</Text>
+      <Card style={styles.gap}>
         {allDone ? (
-          <Text style={[text, styles.bold]}>✓ Nothing left to log today.</Text>
+          <View style={styles.doneRow}>
+            <StatusMark status="taken" size={32} />
+            <View style={styles.flex}>
+              <Heading level="section">All done for today</Heading>
+              <BodyText size="meta" muted>
+                Nothing left to log.
+              </BodyText>
+            </View>
+          </View>
         ) : hasMedications ? (
-          <Text style={text}>No doses scheduled today.</Text>
+          <BodyText>No doses are scheduled today.</BodyText>
         ) : (
           <>
-            <Text style={[text, styles.bold]}>No medications yet</Text>
-            <Text style={text}>Add a medication with its times to see your daily plan here.</Text>
+            <Heading level="section">No medicines yet</Heading>
+            <BodyText>Add a medicine with its times to see your day here.</BodyText>
             <AccessibleButton
-              label="Add a medication"
+              label="Add a medicine"
               icon="＋"
               variant="primary"
               onPress={() => router.push('/addMedication')}
             />
           </>
         )}
-      </View>
+      </Card>
     );
   }
 
   const time = formatTime(dose.scheduledTime);
+  const [clock, meridiem] = splitTime(time);
   const until = timeFromNow(dose.scheduledAt, now);
+  const pill = pillAppearance(dose.medication);
+  const stubColor = toggles.highContrast ? colors.surface : colors.accentSoft;
+  const stubBorder = toggles.highContrast ? colors.textPrimary : colors.accent;
 
   return (
-    <View style={[card, styles.gap]}>
-      <View style={styles.badges}>
-        <View style={[styles.badge, { borderColor: colors.textPrimary }]}>
-          <Text style={[styles.badgeText, { color: colors.textPrimary, fontSize: 12 * scale }]}>
-            UP NEXT • {time.toUpperCase()}
-          </Text>
+    <Card style={styles.ticket}>
+      <View
+        style={styles.top}
+        accessible
+        accessibilityLabel={`Next dose${dose.isLate ? ', past due' : ''}: ${dose.medication.name}, ${doseAmount(
+          dose.medication,
+        )}, at ${time}, ${until}.${dose.medication.instructions ? ` ${dose.medication.instructions}` : ''}`}>
+        <View style={[styles.stub, { backgroundColor: stubColor }]}>
+          <BodyText size="small" bold color={dose.isLate ? colors.danger : colors.textPrimary}>
+            {dose.isLate ? 'Late' : 'Next'}
+          </BodyText>
+          <View>
+            <BodyText style={headingStyle(TypeScale.heading, Math.min(fontScale, 1.3))}>{clock}</BodyText>
+          </View>
+          {meridiem ? (
+            <BodyText size="meta" bold>
+              {meridiem}
+            </BodyText>
+          ) : null}
         </View>
-        <View
-          style={[
-            styles.badge,
-            dose.isLate
-              ? { backgroundColor: colors.danger, borderColor: colors.danger }
-              : { borderColor: colors.primary },
-          ]}>
-          <Text
-            style={[
-              styles.badgeText,
-              { color: dose.isLate ? colors.onDanger : colors.primary, fontSize: 12 * scale },
-            ]}>
-            {dose.isLate ? `⚠ ${until.toUpperCase()}` : until.toUpperCase()}
-          </Text>
+
+        {/* The dashed tear line, made of small dashes that space out to fit the
+            card. (A percentage-height drawing here stretched the card endlessly on
+            phones, and dashed single-side borders are unreliable on iOS.) */}
+        <View style={[styles.tear, { backgroundColor: stubColor }]}>
+          {TEAR_DASHES.map((key) => (
+            <View key={key} style={[styles.dash, { backgroundColor: stubBorder }]} />
+          ))}
+        </View>
+
+        <View style={styles.info}>
+          <PillMark form={pill.form} color={pill.color} size={44} />
+          <View style={styles.flex}>
+            <Heading level="heading" accessibilityRole="text">
+              {dose.medication.name}
+            </Heading>
+            <BodyText size="meta" muted>
+              {doseAmount(dose.medication)} · {until}
+            </BodyText>
+            {dose.medication.instructions ? (
+              <BodyText size="meta" muted>
+                {dose.medication.instructions}
+              </BodyText>
+            ) : null}
+          </View>
         </View>
       </View>
 
-      <View style={styles.medRow}>
-        <View style={[styles.pill, { backgroundColor: colors.sage }]}>
-          <AppIcon name="pill" size={28} color={colors.primary} />
-        </View>
-        <View style={styles.medText}>
-          <Text style={[styles.name, { color: colors.textPrimary, fontSize: 24 * scale }]}>{dose.medication.name}</Text>
-          <Text style={[text, styles.bold]}>
-            {doseAmount(dose.medication)} • {time}
-          </Text>
-          {dose.medication.instructions ? <Text style={text}>{dose.medication.instructions}</Text> : null}
-        </View>
+      <View style={[styles.actions, { borderTopColor: colors.ringTrack }]}>
+        <AccessibleButton
+          label="Mark taken"
+          icon="✓"
+          variant="primary"
+          style={styles.flex}
+          onPress={() => onLog(dose)}
+          accessibilityLabel={`Mark ${dose.medication.name} taken, ${doseAmount(dose.medication)}, due ${time}`}
+          accessibilityHint="Asks you to confirm before saving"
+        />
+        <AccessibleButton
+          label="Later"
+          onPress={onRemind}
+          accessibilityLabel="Remind me later"
+          accessibilityHint="Sets a phone notification. The dose stays pending."
+        />
       </View>
-
-      <AccessibleButton
-        label="Log this dose"
-        icon="✓"
-        variant="primary"
-        onPress={() => onLog(dose)}
-        accessibilityLabel={`Log ${dose.medication.name}, ${doseAmount(dose.medication)}, due ${time}`}
-        accessibilityHint="Asks you to confirm before saving"
-      />
-      <AccessibleButton
-        label="Remind me later"
-        icon="⏰"
-        onPress={onRemind}
-        accessibilityHint="Sets a phone notification. The dose stays pending."
-      />
-    </View>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
   gap: { gap: 12 },
-  label: { fontWeight: '800', letterSpacing: 1 },
-  bold: { fontWeight: '600' },
-  badges: { flexDirection: 'row', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 },
-  badge: { borderWidth: 1.5, borderRadius: 8, paddingVertical: 4, paddingHorizontal: 8 },
-  badgeText: { fontWeight: '800', letterSpacing: 0.5 },
-  medRow: { flexDirection: 'row', gap: 14, alignItems: 'center' },
-  pill: { width: 56, height: 56, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  medText: { flex: 1, gap: 2 },
-  name: { fontWeight: '700' },
+  flex: { flex: 1 },
+  doneRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  // The ticket draws its own sections, so it drops the card's padding.
+  ticket: { padding: 0, overflow: 'hidden' },
+  top: { flexDirection: 'row' },
+  stub: {
+    width: 104,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 18,
+    paddingHorizontal: 6,
+  },
+  tear: { width: 2, alignSelf: 'stretch', overflow: 'hidden', justifyContent: 'space-evenly', paddingVertical: 6 },
+  dash: { width: 2, height: 5, borderRadius: 1 },
+  info: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16 },
+  actions: { flexDirection: 'row', gap: 10, padding: 14, borderTopWidth: 1 },
 });
