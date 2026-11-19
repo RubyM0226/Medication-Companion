@@ -16,6 +16,8 @@ export type MedicationSchedule = {
 };
 
 export type DoseStatus = 'taken' | 'missed' | 'skipped';
+export type DoseTiming = 'on-time' | 'early' | 'late';
+
 
 export type DoseLog = {
   id: string;
@@ -23,6 +25,7 @@ export type DoseLog = {
   scheduledDate: string;
   scheduledTime: string;
   status: DoseStatus;
+  timing?: DoseTiming;
   loggedAt: string;
   notes?: string;
 };
@@ -87,11 +90,12 @@ export function dosesForDay<M extends ScheduledMedication>(
   now: Date,
 ): Dose<M>[] {
   const day = dateKey(date);
+  const dayLogs = logs.filter((log) => log.scheduledDate === day);
   const logByKey = new Map(
-    logs
-      .filter((log) => log.scheduledDate === day)
-      .map((log) => [`${log.medicationId}|${log.scheduledTime}`, log]),
+    dayLogs.map((log) => [`${log.medicationId}|${log.scheduledTime}`, log]),
   );
+  const matchedKeys = new Set<string>();
+  const medById = new Map(medications.map((med) => [med.id, med]));
 
   const doses: Dose<M>[] = [];
   for (const medication of medications) {
@@ -101,7 +105,9 @@ export function dosesForDay<M extends ScheduledMedication>(
     for (const time of times) {
       const [hours, minutes] = time.split(':').map(Number);
       const scheduledAt = new Date(date.getFullYear(), date.getMonth(), date.getDate(), hours, minutes);
-      const log = logByKey.get(`${medication.id}|${time}`);
+      const pairKey = `${medication.id}|${time}`;
+      const log = logByKey.get(pairKey);
+      if (log) matchedKeys.add(pairKey);
       const status = log?.status ?? 'pending';
       doses.push({
         key: `${medication.id}|${day}|${time}`,
@@ -114,6 +120,26 @@ export function dosesForDay<M extends ScheduledMedication>(
         log,
       });
     }
+  }
+
+  // Include any extra/unscheduled doses logged on this date (for example, past doses added from History).
+  for (const log of dayLogs) {
+    const pairKey = `${log.medicationId}|${log.scheduledTime}`;
+    if (matchedKeys.has(pairKey)) continue;
+    const medication = medById.get(log.medicationId);
+    if (!medication || !isValidTime(log.scheduledTime)) continue;
+    const [hours, minutes] = log.scheduledTime.split(':').map(Number);
+    const scheduledAt = new Date(date.getFullYear(), date.getMonth(), date.getDate(), hours, minutes);
+    doses.push({
+      key: `${medication.id}|${day}|${log.scheduledTime}`,
+      medication,
+      scheduledDate: day,
+      scheduledTime: log.scheduledTime,
+      scheduledAt,
+      status: log.status,
+      isLate: false,
+      log,
+    });
   }
 
   return doses.sort(

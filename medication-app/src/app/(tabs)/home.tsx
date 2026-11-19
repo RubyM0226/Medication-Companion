@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AccessibleButton } from '@/components/accessibleButton';
 import { DailyProgressCard, progressStatus } from '@/components/home/dailyProgressCard';
 import { DoseConfirmationModal } from '@/components/home/doseConfirmationModal';
+import { DoseNotesModal } from '@/components/home/doseNotesModal';
 import { doseSentence } from '@/components/home/format';
 import { MedicationScheduleCard } from '@/components/home/medicationScheduleCard';
 import { PrivacyBanner } from '@/components/home/privacyBanner';
@@ -36,6 +37,7 @@ export default function HomeScreen() {
   const { state, now, retry } = useTodayDoses();
   const { speakingId, toggle } = useReadAloud();
   const [confirming, setConfirming] = useState<Dose<Medication> | null>(null);
+  const [noting, setNoting] = useState<Dose<Medication> | null>(null);
   const [reminding, setReminding] = useState(false);
   const timeOfDay = useTimeOfDay(now);
 
@@ -104,7 +106,12 @@ export default function HomeScreen() {
                     <BodyText>No doses are scheduled for today.</BodyText>
                   ) : (
                     state.doses.map((dose) => (
-                      <MedicationScheduleCard key={dose.key} dose={dose} onLog={setConfirming} />
+                      <MedicationScheduleCard
+                        key={dose.key}
+                        dose={dose}
+                        onLog={setConfirming}
+                        onNotes={setNoting}
+                      />
                     ))
                   )}
                   {state.medications.some((med) => med.schedule.frequencyType === 'as_needed') ? (
@@ -153,6 +160,11 @@ export default function HomeScreen() {
         </View>
 
         <DoseConfirmationModal dose={confirming} onClose={() => setConfirming(null)} />
+        <DoseNotesModal
+          dose={noting}
+          onClose={() => setNoting(null)}
+          onNeedLogFirst={setConfirming}
+        />
         <RemindLaterModal visible={reminding} onClose={() => setReminding(false)} />
       </ScrollView>
     </View>

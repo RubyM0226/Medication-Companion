@@ -8,11 +8,14 @@
 
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { AccessibleButton } from '@/components/accessibleButton';
+import { AddPastDoseModal } from '@/components/history/addPastDoseModal';
 import { doseMark, doseStatusWords } from '@/components/history/dayStatus';
 import { WeekGrid } from '@/components/history/weekGrid';
+import { DoseConfirmationModal } from '@/components/home/doseConfirmationModal';
+import { DoseNotesModal } from '@/components/home/doseNotesModal';
 import { BodyText, Heading } from '@/components/ui/appText';
 import { Card } from '@/components/ui/card';
 import { ScreenTitle } from '@/components/ui/screenTitle';
@@ -21,7 +24,8 @@ import { MedicationStatus } from '@/constants/colors';
 import { headingStyle, TypeScale } from '@/constants/typography';
 import { useSettings } from '@/context/settingsContext';
 import { useWeekHistory } from '@/hooks/useWeekHistory';
-import { formatTime } from '@/services/doseSchedule';
+import { Dose, formatTime } from '@/services/doseSchedule';
+import { Medication } from '@/services/medicationStore';
 
 const shortDate = (date: Date) => date.toLocaleDateString([], { month: 'short', day: 'numeric' });
 
@@ -37,6 +41,9 @@ export default function HistoryScreen() {
   const [weeksBack, setWeeksBack] = useState(0);
   const { state, retry } = useWeekHistory(weeksBack);
   const [selectedKey, setSelectedKey] = useState('');
+  const [editingDose, setEditingDose] = useState<Dose<Medication> | null>(null);
+  const [notingDose, setNotingDose] = useState<Dose<Medication> | null>(null);
+  const [addingPastDose, setAddingPastDose] = useState(false);
 
   // Select the newest day whenever a new week loads.
   const lastKey = state.status === 'ready' ? state.days[state.days.length - 1].key : '';
@@ -156,7 +163,6 @@ export default function HistoryScreen() {
                 </View>
               ))}
             </View>
-
             <View style={styles.gap}>
               <Heading level="section">
                 {selected.date.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' })}
@@ -166,6 +172,8 @@ export default function HistoryScreen() {
               ) : (
                 selected.doses.map((dose) => {
                   const words = doseStatusWords(dose, now);
+                  const isPending = dose.status === 'pending';
+                  const savedNote = dose.log?.notes;
                   return (
                     <Card
                       key={dose.key}
@@ -175,21 +183,74 @@ export default function HistoryScreen() {
                       <BodyText bold style={styles.time}>
                         {formatTime(dose.scheduledTime)}
                       </BodyText>
-                      <BodyText style={styles.doseName}>{dose.medication.name}</BodyText>
+                      <View style={styles.doseName}>
+                        <BodyText>{dose.medication.name}</BodyText>
+                        {savedNote ? (
+                          <BodyText size="meta" muted numberOfLines={2} style={styles.notePreview}>
+                            Note: {savedNote}
+                          </BodyText>
+                        ) : null}
+                      </View>
                       <View style={styles.doseStatus}>
                         <StatusMark status={doseMark(dose)} size={20} />
                         <BodyText size="small" bold>
                           {words}
                         </BodyText>
                       </View>
+                      <View style={styles.actionRow}>
+                        {!isPending ? (
+                          <Pressable
+                            onPress={() => setNotingDose(dose)}
+                            accessibilityRole="button"
+                            accessibilityLabel={`${savedNote ? 'Edit note' : 'Add notes'} for ${dose.medication.name} on ${selected.date.toLocaleDateString()}`}
+                            style={[styles.editButton, { borderColor: colors.primary }]}>
+                            <BodyText size="meta" bold color={colors.primary}>
+                              {savedNote ? 'Edit note' : 'Add notes'}
+                            </BodyText>
+                          </Pressable>
+                        ) : null}
+                        <Pressable
+                          onPress={() => setEditingDose(dose)}
+                          accessibilityRole="button"
+                          accessibilityLabel={`${isPending ? 'Add dose' : 'Edit'} ${dose.medication.name} on ${selected.date.toLocaleDateString()}`}
+                          style={[
+                            styles.editButton,
+                            { borderColor: isPending ? colors.primary : colors.textSecondary },
+                          ]}>
+                          <BodyText size="meta" bold color={isPending ? colors.primary : undefined}>
+                            {isPending ? 'Add dose' : 'Edit'}
+                          </BodyText>
+                        </Pressable>
+                      </View>
                     </Card>
                   );
                 })
               )}
+
+              <AccessibleButton
+                label="Add a past dose"
+                icon="＋"
+                onPress={() => setAddingPastDose(true)}
+                accessibilityLabel={`Add a past dose for ${selected.date.toLocaleDateString()}`}
+              />
             </View>
           </>
         )}
       </View>
+
+      <DoseConfirmationModal dose={editingDose} onClose={() => setEditingDose(null)} />
+      <DoseNotesModal
+        dose={notingDose}
+        onClose={() => setNotingDose(null)}
+        onNeedLogFirst={setEditingDose}
+      />
+      <AddPastDoseModal
+        visible={addingPastDose}
+        dateKey={selected.key}
+        dateLabel={shortDate(selected.date)}
+        medications={medications}
+        onClose={() => setAddingPastDose(false)}
+      />
     </ScrollView>
   );
 }
@@ -211,5 +272,14 @@ const styles = StyleSheet.create({
   doseRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, flexWrap: 'wrap' },
   time: { minWidth: 76 },
   doseName: { flex: 1, minWidth: 100 },
+  notePreview: { marginTop: 2, fontStyle: 'italic' },
   doseStatus: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  actionRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  editButton: {
+    borderWidth: 1.5,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
 });
+

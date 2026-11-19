@@ -5,20 +5,20 @@
 // needs a status column for missed and skipped doses.
 
 import { getDatabase, newId } from '@/services/database';
-import { DoseLog, DoseStatus } from '@/services/doseSchedule';
+import { DoseLog, DoseStatus, DoseTiming } from '@/services/doseSchedule';
 
 export type NewDoseLog = {
   medicationId: string;
   scheduledDate: string;
   scheduledTime: string;
   status: DoseStatus;
+  timing?: DoseTiming;
+  loggedAt?: string;
   notes?: string;
 };
 
 export type LogDoseResult =
   | { saved: true; log: DoseLog }
-  // This dose was already logged (for example, a double tap or another
-  // screen). Nothing new was written.
   | { saved: false; existing: DoseLog };
 
 export type DoseLogWithMedication = DoseLog & {
@@ -33,6 +33,7 @@ type Row = {
   scheduled_date: string;
   scheduled_time: string;
   status: DoseStatus;
+  timing: DoseTiming | null;
   logged_at: string;
   notes: string | null;
 };
@@ -44,6 +45,7 @@ function fromRow(row: Row): DoseLog {
     scheduledDate: row.scheduled_date,
     scheduledTime: row.scheduled_time,
     status: row.status,
+    timing: row.timing ?? undefined,
     loggedAt: row.logged_at,
     notes: row.notes ?? undefined,
   };
@@ -51,7 +53,7 @@ function fromRow(row: Row): DoseLog {
 
 const listeners = new Set<() => void>();
 
-// Called whenever a dose is logged, so open screens can refresh.
+// Called whenever a dose is logged or edited, so open screens can refresh.
 export function subscribeToDoseLogs(listener: () => void) {
   listeners.add(listener);
   return () => {
@@ -61,32 +63,29 @@ export function subscribeToDoseLogs(listener: () => void) {
 
 export async function logDose(entry: NewDoseLog): Promise<LogDoseResult> {
   const db = await getDatabase();
-  const log: DoseLog = { ...entry, id: newId(), loggedAt: new Date().toISOString() };
+  const log: DoseLog = {
+    ...entry,
+    id: newId(),
+    loggedAt: entry.loggedAt ?? new Date().toISOString(),
+  };
 
-  // The UNIQUE (medication, date, time) constraint makes a second log of the
-  // same dose a no-op instead of a duplicate.
-  const result = await db.runAsync(
-    `INSERT INTO dose_logs (id, medication_id, scheduled_date, scheduled_time, status, logged_at, notes)
-       VALUES (?, ?, ?, ?, ?, ?, ?)
-       ON CONFLICT (medication_id, scheduled_date, scheduled_time) DO NOTHING`,
+  await db.runAsync(
+    `INSERT INTO dose_logs (id, medication_id, scheduled_date, scheduled_time, status, timing, logged_at, notes)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT (medication_id, scheduled_date, scheduled_time) DO UPDATE SET
+         status = excluded.status,
+         timing = excluded.timing,
+         logged_at = excluded.logged_at,
+         notes = COALESCE(excluded.notes, dose_logs.notes)`,
     log.id,
     log.medicationId,
     log.scheduledDate,
     log.scheduledTime,
     log.status,
+    log.timing ?? null,
     log.loggedAt,
     log.notes ?? null,
   );
-
-  if (result.changes === 0) {
-    const existing = await db.getFirstAsync<Row>(
-      'SELECT * FROM dose_logs WHERE medication_id = ? AND scheduled_date = ? AND scheduled_time = ?',
-      entry.medicationId,
-      entry.scheduledDate,
-      entry.scheduledTime,
-    );
-    if (existing) return { saved: false, existing: fromRow(existing) };
-  }
 
   listeners.forEach((listener) => listener());
   return { saved: true, log };
@@ -119,4 +118,28 @@ export async function getDoseLogsBetween(from: string, to: string): Promise<Dose
     dosage: row.dosage,
     dosageUnit: row.dosage_unit,
   }));
+}
+
+export async function updateDoseNotes(
+  medicationId: string,
+  scheduledDate: string,
+  scheduledTime: string,
+  notes: string,
+): Promise<boolean> {
+  const db = await getDatabase();
+  const trimmed = notes.trim();
+  const result = await db.runAsync(
+    `UPDATE dose_logs
+        SET notes = ?
+      WHERE medication_id = ? AND scheduled_date = ? AND scheduled_time = ?`,
+    trimmed.length > 0 ? trimmed : null,
+    medicationId,
+    scheduledDate,
+    scheduledTime,
+  );
+  if (result.changes > 0) {
+    listeners.forEach((listener) => listener());
+    return true;
+  }
+  return false;
 }

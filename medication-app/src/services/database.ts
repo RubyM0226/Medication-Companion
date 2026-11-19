@@ -76,6 +76,10 @@ const MIGRATIONS = [
   ALTER TABLE medications ADD COLUMN pill_form TEXT;
   ALTER TABLE medications ADD COLUMN pill_color TEXT;
   `,
+   // 3: whether a logged dose was taken/skipped/missed on time, early, or late.
+  `
+  ALTER TABLE dose_logs ADD COLUMN timing TEXT;
+  `,
 ];
 
 async function migrate(db: SQLite.SQLiteDatabase) {

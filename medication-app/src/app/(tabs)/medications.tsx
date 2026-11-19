@@ -1,18 +1,16 @@
 // My medicines: every saved medicine with its pill drawing, dose and schedule.
 // Design refresh: one title (the header), cards with the pill drawing, long
-// "watch for" lists shortened behind Show more, and Change pill look.
+// "watch for" lists shortened behind Show more, and full Edit pill support.
 
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { AccessibilityInfo, Alert, Platform, ScrollView, StyleSheet, View } from 'react-native';
 
 import { AccessibleButton } from '@/components/accessibleButton';
-import { AppModal } from '@/components/appModal';
-import { PillLook, PillPicker } from '@/components/pillPicker';
 import { BodyText, Heading } from '@/components/ui/appText';
 import { Card } from '@/components/ui/card';
+import { pillAppearance, PillMark } from '@/components/ui/pillMark';
 import { ScreenTitle } from '@/components/ui/screenTitle';
-import { describePill, pillAppearance, PillMark } from '@/components/ui/pillMark';
 import { useSettings } from '@/context/settingsContext';
 import { useMedications } from '@/hooks/useMedications';
 import { describeSchedule } from '@/services/doseSchedule';
@@ -23,11 +21,11 @@ const SIDE_EFFECTS_SHOWN = 3;
 
 function MedicationCard({
   medication,
-  onChangeLook,
+  onEdit,
   onRemove,
 }: {
   medication: Medication;
-  onChangeLook: () => void;
+  onEdit: () => void;
   onRemove: () => void;
 }) {
   const { colors } = useSettings();
@@ -92,9 +90,9 @@ function MedicationCard({
 
       <View style={styles.actions}>
         <AccessibleButton
-          label="Change pill look"
-          onPress={onChangeLook}
-          accessibilityLabel={`Change pill look for ${medication.name}. Now: ${describePill(pill.form, pill.color)}`}
+          label="Edit pill"
+          onPress={onEdit}
+          accessibilityLabel={`Edit ${medication.name}`}
           style={styles.action}
         />
         {medication.fdaSetId ? (
@@ -119,11 +117,7 @@ function MedicationCard({
 }
 
 export default function MedicationsScreen() {
-  const { colors } = useSettings();
-  const { medications, loaded, remove, updateAppearance } = useMedications();
-  const [editing, setEditing] = useState<Medication | null>(null);
-  const [look, setLook] = useState<PillLook>({ form: 'round', color: '#FFFFFF' });
-  const [saveError, setSaveError] = useState('');
+  const { medications, loaded, remove } = useMedications();
 
   const confirmRemove = (medication: Medication) => {
     const removeIt = async () => {
@@ -141,23 +135,6 @@ export default function MedicationsScreen() {
       { text: 'Cancel', style: 'cancel' },
       { text: 'Remove', style: 'destructive', onPress: removeIt },
     ]);
-  };
-
-  const openLook = (medication: Medication) => {
-    setLook(pillAppearance(medication));
-    setSaveError('');
-    setEditing(medication);
-  };
-
-  const saveLook = async () => {
-    if (!editing) return;
-    try {
-      await updateAppearance(editing.id, look.form, look.color);
-      AccessibilityInfo.announceForAccessibility(`${editing.name} now shows a ${describePill(look.form, look.color)}`);
-      setEditing(null);
-    } catch {
-      setSaveError('Could not save. Please try again.');
-    }
   };
 
   return (
@@ -194,23 +171,11 @@ export default function MedicationsScreen() {
           <MedicationCard
             key={medication.id}
             medication={medication}
-            onChangeLook={() => openLook(medication)}
+            onEdit={() => router.push({ pathname: '/addMedication', params: { id: medication.id } })}
             onRemove={() => confirmRemove(medication)}
           />
         ))}
       </View>
-
-      <AppModal visible={editing !== null} title="Change pill look" onClose={() => setEditing(null)}>
-        {editing ? <BodyText muted>{editing.name}</BodyText> : null}
-        <PillPicker value={look} onChange={setLook} />
-        {saveError ? (
-          <BodyText bold color={colors.danger} accessibilityLiveRegion="polite">
-            {saveError}
-          </BodyText>
-        ) : null}
-        <AccessibleButton label="Save" icon="✓" variant="primary" onPress={saveLook} />
-        <AccessibleButton label="Cancel" onPress={() => setEditing(null)} />
-      </AppModal>
     </ScrollView>
   );
 }
@@ -229,3 +194,4 @@ const styles = StyleSheet.create({
   actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   action: { flexGrow: 1 },
 });
+

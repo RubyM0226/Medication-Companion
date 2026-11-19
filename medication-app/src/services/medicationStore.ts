@@ -34,6 +34,7 @@ export interface MedicationRepository {
   // Active medications only.
   list(): Promise<Medication[]>;
   add(medication: NewMedication): Promise<Medication>;
+  update(id: string, medication: NewMedication): Promise<void>;
   // Archives rather than deletes, so past dose logs keep their medication.
   remove(id: string): Promise<void>;
   // Change how the pill looks (My medicines > Change pill look).
@@ -156,6 +157,65 @@ export const localMedications: MedicationRepository = {
     return saved;
   },
 
+  async update(id, medication) {
+    const db = await getDatabase();
+    const { schedule } = medication;
+
+    await db.withExclusiveTransactionAsync(async (txn) => {
+      await txn.runAsync(
+        `UPDATE medications
+            SET name = ?,
+                dosage = ?,
+                dosage_unit = ?,
+                effect = ?,
+                instructions = ?,
+                side_effects = ?,
+                pill_form = ?,
+                pill_color = ?
+          WHERE id = ?`,
+        medication.name,
+        medication.dosage,
+        medication.dosageUnit,
+        medication.effect,
+        medication.instructions,
+        JSON.stringify(medication.sideEffects),
+        medication.pillForm ?? null,
+        medication.pillColor ?? null,
+        id,
+      );
+
+      const updatedSchedule = await txn.runAsync(
+        `UPDATE medication_schedules
+            SET frequency_type = ?,
+                days_of_week = ?,
+                reminder_times = ?,
+                end_date = ?
+          WHERE medication_id = ?`,
+        schedule.frequencyType,
+        JSON.stringify(schedule.daysOfWeek),
+        JSON.stringify(schedule.reminderTimes),
+        schedule.endDate ?? null,
+        id,
+      );
+
+      if (updatedSchedule.changes === 0) {
+        await txn.runAsync(
+          `INSERT INTO medication_schedules
+            (id, medication_id, frequency_type, days_of_week, reminder_times, start_date, end_date)
+            VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          newId(),
+          id,
+          schedule.frequencyType,
+          JSON.stringify(schedule.daysOfWeek),
+          JSON.stringify(schedule.reminderTimes),
+          schedule.startDate,
+          schedule.endDate ?? null,
+        );
+      }
+    });
+  },
+
+
   async remove(id) {
     const db = await getDatabase();
     await db.runAsync('UPDATE medications SET archived_at = ? WHERE id = ?', new Date().toISOString(), id);
@@ -166,3 +226,4 @@ export const localMedications: MedicationRepository = {
     await db.runAsync('UPDATE medications SET pill_form = ?, pill_color = ? WHERE id = ?', pillForm, pillColor, id);
   },
 };
+

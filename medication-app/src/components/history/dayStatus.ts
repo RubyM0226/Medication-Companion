@@ -3,7 +3,7 @@
 // assumed missed.
 
 import { MedicationStatus } from '@/constants/colors';
-import { Dose } from '@/services/doseSchedule';
+import { Dose, DoseTiming } from '@/services/doseSchedule';
 import { Medication } from '@/services/medicationStore';
 
 export type CellSummary = {
@@ -35,10 +35,22 @@ export function summarizeCell(doses: Dose<Medication>[], now: Date): CellSummary
   return { mark, taken, total, words: parts.join(', ') };
 }
 
+const TIMING_LABELS: Record<DoseTiming, string> = {
+  'on-time': 'on time',
+  early: 'early',
+  late: 'late',
+};
+
 export function doseStatusWords(dose: Dose<Medication>, now: Date) {
-  if (dose.status === 'taken') return 'Taken';
-  if (dose.status === 'missed') return 'Missed';
-  if (dose.status === 'skipped') return 'Skipped';
+  const timing = dose.log?.timing ? ` (${TIMING_LABELS[dose.log.timing]})` : '';
+  if (dose.status === 'taken') {
+    const at = dose.log?.loggedAt
+      ? ` at ${new Date(dose.log.loggedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`
+      : '';
+    return `Taken${at}${timing}`;
+  }
+  if (dose.status === 'missed') return `Missed${timing}`;
+  if (dose.status === 'skipped') return `Skipped${timing}`;
   return dose.scheduledAt < now ? 'Not logged' : 'Later';
 }
 
